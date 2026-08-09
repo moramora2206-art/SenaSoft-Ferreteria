@@ -28,7 +28,9 @@ public class Conexion {
         } catch (ClassNotFoundException e) {
             System.err.println("✗ Error: Driver no encontrado - " + e.getMessage());
         } catch (SQLException e) {
-            System.err.println("✗ Error: No se pudo conectar - " + e.getMessage());
+            throw new RuntimeException(
+            "Error conectando a MySQL", e
+            );
         }
     }
     

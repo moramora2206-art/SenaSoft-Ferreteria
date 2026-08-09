@@ -1,5 +1,6 @@
 package com.sena.controlador;
 
+import com.google.gson.Gson;
 import com.sena.dao.ClienteDAO;
 import com.sena.modelo.Cliente;
 
@@ -7,69 +8,146 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/ClienteServlet")
+@WebServlet("/api/clientes")
 public class ClienteServlet extends HttpServlet {
 
-    ClienteDAO dao = new ClienteDAO();
+    private final ClienteDAO dao = new ClienteDAO();
+    private final Gson gson = new Gson();
 
-    // 🔍 CONSULTAR Y ELIMINAR
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    private void cors(HttpServletResponse response) {
 
-        String accion = request.getParameter("accion");
+        response.setHeader(
+            "Access-Control-Allow-Origin",
+            "*"
+        );
 
-        if (accion != null && accion.equals("eliminar")) {
-            try {
-                int id = Integer.parseInt(request.getParameter("id"));
-                dao.eliminar(id);
-            } catch(Exception e){
-                e.printStackTrace();
-            }
-        }
+        response.setHeader(
+            "Access-Control-Allow-Methods",
+            "GET,POST,PUT,DELETE,OPTIONS"
+        );
 
-        List<Cliente> lista = dao.listar();
-        request.setAttribute("clientes", lista);
-
-        request.getRequestDispatcher("/web/cliente/listar.jsp").forward(request, response);
+        response.setHeader(
+            "Access-Control-Allow-Headers",
+            "Content-Type"
+        );
     }
 
-    // ➕ INSERTAR / ✏️ ACTUALIZAR
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    @Override
+    protected void doOptions(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws IOException {
 
-        String accion = request.getParameter("accion"); 
+        cors(response);
 
-        String nombre = request.getParameter("nombre");
-        String apellido = request.getParameter("apellido");
-        String email = request.getParameter("email");
-        String cedula = request.getParameter("cedula");
-        String nCelular = request.getParameter("nCelular");
-        String direccion = request.getParameter("direccion");
+        response.setStatus(
+            HttpServletResponse.SC_OK
+        );
+    }
 
-        Cliente c = new Cliente();
-        c.setNombre(nombre);
-        c.setApellido(apellido);
-        c.setEmail(email);
-        c.setCedula(cedula);
-        c.setNCelular(nCelular);
-        c.setDireccion(direccion);
+    @Override
+    protected void doGet(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws IOException {
 
-        try {
-            if (accion.equals("insertar")) {
-                dao.insertar(c);
-            } else if (accion.equals("actualizar")) {
-                int id = Integer.parseInt(request.getParameter("id"));
-                c.setIdCliente(id);
-                dao.actualizar(c);
-            }
-        } catch(Exception e){
-            e.printStackTrace();
-            request.setAttribute("error", e.getMessage());
-        }
+        cors(response);
 
-        response.sendRedirect("ClienteServlet");
+        response.setContentType(
+            "application/json"
+        );
+
+        List<Cliente> clientes =
+            dao.listar();
+
+        response.getWriter().print(
+            gson.toJson(clientes)
+        );
+    }
+
+    @Override
+    protected void doPost(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws IOException {
+
+        cors(response);
+
+        BufferedReader reader =
+            request.getReader();
+
+        Cliente cliente =
+            gson.fromJson(
+                reader,
+                Cliente.class
+            );
+
+        boolean ok =
+            dao.insertar(cliente);
+
+        response.setContentType(
+            "application/json"
+        );
+
+        response.getWriter().print(
+            "{\"success\":" + ok + "}"
+        );
+    }
+
+    @Override
+    protected void doPut(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws IOException {
+
+        cors(response);
+
+        BufferedReader reader =
+            request.getReader();
+
+        Cliente cliente =
+            gson.fromJson(
+                reader,
+                Cliente.class
+            );
+
+        boolean ok =
+            dao.actualizar(cliente);
+
+        response.setContentType(
+            "application/json"
+        );
+
+        response.getWriter().print(
+            "{\"success\":" + ok + "}"
+        );
+    }
+
+    @Override
+    protected void doDelete(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws IOException {
+
+        cors(response);
+
+        int id = Integer.parseInt(
+            request.getParameter("id")
+        );
+
+        boolean ok =
+            dao.eliminar(id);
+
+        response.setContentType(
+            "application/json"
+        );
+
+        response.getWriter().print(
+            "{\"success\":" + ok + "}"
+        );
     }
 }

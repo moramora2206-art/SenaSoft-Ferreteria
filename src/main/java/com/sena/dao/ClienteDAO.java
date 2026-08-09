@@ -115,6 +115,10 @@ public class ClienteDAO {
         }
     }
     
+    public boolean eliminarCliente(int id) {
+        return eliminar(id);
+    }
+
     public void cerrar() {
         conexion.cerrarConexion();
     }

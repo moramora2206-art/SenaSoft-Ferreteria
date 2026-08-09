@@ -21,18 +21,42 @@ public class ProductoDAO {
     }
     
     public boolean insertar(Producto producto) {
-        String sql = "INSERT INTO productos (`IdProveedor`, `Nombre_Producto`, `Codigo_SKU`, `Stock`, `Precio_Unitario`, `Descripcion`) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conexion.getConnection().prepareStatement(sql)) {
+
+        String sql =
+        "INSERT INTO productos " +
+        "(IdProveedor, Nombre_Producto, Codigo_SKU, Stock, " +
+        "Precio_Unitario, Fecha_Vencimiento, Descripcion) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement ps =
+                conexion.getConnection().prepareStatement(sql)) {
+
             ps.setInt(1, producto.getIdProveedor());
             ps.setString(2, producto.getNombreProducto());
             ps.setString(3, producto.getCodigoSKU());
             ps.setInt(4, producto.getStock());
             ps.setBigDecimal(5, producto.getPrecioUnitario());
-            ps.setString(6, producto.getDescripcion());
+
+            ps.setDate(
+                6,
+                new java.sql.Date(
+                    producto.getFechaVencimiento().getTime()
+                )
+            );
+
+            ps.setString(7, producto.getDescripcion());
+
             ps.executeUpdate();
+
             return true;
+
         } catch (SQLException e) {
-            System.err.println("✗ Error al insertar producto: " + e.getMessage());
+
+            System.out.println(
+                "ERROR INSERTANDO PRODUCTO: "
+                + e.getMessage()
+            );
+
             return false;
         }
     }
@@ -50,6 +74,7 @@ public class ProductoDAO {
                 producto.setCodigoSKU(rs.getString("Codigo_SKU"));
                 producto.setStock(rs.getInt("Stock"));
                 producto.setPrecioUnitario(rs.getBigDecimal("Precio_Unitario"));
+                producto.setFechaVencimiento(rs.getDate("Fecha_Vencimiento"));
                 producto.setDescripcion(rs.getString("Descripcion"));
                 lista.add(producto);
             }
@@ -76,6 +101,7 @@ public class ProductoDAO {
                 producto.setCodigoSKU(rs.getString("Codigo_SKU"));
                 producto.setStock(rs.getInt("Stock"));
                 producto.setPrecioUnitario(rs.getBigDecimal("Precio_Unitario"));
+                producto.setFechaVencimiento(rs.getDate("Fecha_Vencimiento"));
                 producto.setDescripcion(rs.getString("Descripcion"));
                 return producto;
             }
@@ -86,7 +112,7 @@ public class ProductoDAO {
     }
     
     public boolean actualizar(Producto producto) {
-        String sql = "UPDATE productos SET `IdProveedor`=?, `Nombre_Producto`=?, `Codigo_SKU`=?, `Stock`=?, `Precio_Unitario`=?, `Descripcion`=? WHERE `IdProducto`=?";
+        String sql = "UPDATE productos SET `IdProveedor`=?, `Nombre_Producto`=?, `Codigo_SKU`=?, `Stock`=?, `Precio_Unitario`=?, `Fecha_Vencimiento`=?, `Descripcion`=? WHERE `IdProducto`=?";
         try (PreparedStatement ps = conexion.getConnection().prepareStatement(sql)) {
             ps.setInt(1, producto.getIdProveedor());
             ps.setString(2, producto.getNombreProducto());

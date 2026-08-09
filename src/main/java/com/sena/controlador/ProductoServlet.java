@@ -80,36 +80,42 @@ public class ProductoServlet extends HttpServlet {
                 response.sendRedirect("ProductoServlet");
                 break;
 
-            default: // 🔥 LISTAR PARA JSP Y REACT
+            default:
 
                 List<Producto> lista = dao.listar();
 
-                String accept = request.getHeader("Accept");
+                response.setContentType("application/json;charset=UTF-8");
 
-                if (accept != null && accept.contains("application/json")) {
+                StringBuilder json = new StringBuilder("[");
 
-                    response.setContentType("application/json;charset=UTF-8");
+                for (int i = 0; i < lista.size(); i++) {
 
-                    StringBuilder json = new StringBuilder("[");
-                    for (int i = 0; i < lista.size(); i++) {
-                        Producto p = lista.get(i);
+                    Producto p = lista.get(i);
 
-                        json.append("{")
-                                .append("\"id\":").append(p.getIdProducto()).append(",")
-                                .append("\"nombre\":\"").append(p.getNombreProducto()).append("\",")
-                                .append("\"precio\":").append(p.getPrecioUnitario())
-                                .append("}");
+                    json.append("{")
+                        .append("\"idProducto\":").append(p.getIdProducto()).append(",")
+                        .append("\"idProveedor\":").append(p.getIdProveedor()).append(",")
+                        .append("\"codigoSKU\":\"").append(p.getCodigoSKU()).append("\",")
+                        .append("\"nombreProducto\":\"").append(p.getNombreProducto()).append("\",")
+                        .append("\"stock\":").append(p.getStock()).append(",")
+                        .append("\"precioUnitario\":").append(p.getPrecioUnitario()).append(",")
+                        .append("\"fechaVencimiento\":\"")
+                        .append(p.getFechaVencimiento() != null ? p.getFechaVencimiento() : "")
+                        .append("\",")
+                        .append("\"descripcion\":\"")
+                        .append(p.getDescripcion() != null ? p.getDescripcion() : "")
+                        .append("\"")
+                        .append("}");
 
-                        if (i < lista.size() - 1) json.append(",");
+                    if (i < lista.size() - 1) {
+                        json.append(",");
                     }
-                    json.append("]");
-
-                    response.getWriter().write(json.toString());
-
-                } else {
-                    request.setAttribute("productos", lista);
-                    request.getRequestDispatcher("web/producto/listar.jsp").forward(request, response);
                 }
+
+                json.append("]");
+
+                response.getWriter().write(json.toString());
+
                 break;
         }
     }
@@ -123,7 +129,8 @@ public class ProductoServlet extends HttpServlet {
         setCorsHeaders(response);
 
         // 🔥 SI VIENE DESDE REACT (JSON)
-        if (request.getContentType() != null && request.getContentType().contains("application/json")) {
+        if (request.getContentType() != null &&
+            request.getContentType().contains("application/json")) {
 
             StringBuilder sb = new StringBuilder();
             String line;
@@ -134,17 +141,78 @@ public class ProductoServlet extends HttpServlet {
 
             String json = sb.toString();
 
-            String nombre = json.split("\"nombre\":\"")[1].split("\"")[0];
-            String precioStr = json.split("\"precio\":")[1].split("}")[0];
+            System.out.println("JSON RECIBIDO:");
+            System.out.println(json);
 
-            Producto p = new Producto();
-            p.setNombreProducto(nombre);
-            p.setPrecioUnitario(new BigDecimal(precioStr));
+            try {
 
-            dao.insertar(p);
+                int idProveedor =
+                    Integer.parseInt(
+                        json.split("\"idProveedor\":\"")[1]
+                            .split("\"")[0]
+                    );
 
-            response.setContentType("application/json");
-            response.getWriter().write("{\"mensaje\":\"ok\"}");
+                String codigoSKU =
+                    json.split("\"codigoSKU\":\"")[1]
+                        .split("\"")[0];
+
+                String nombreProducto =
+                    json.split("\"nombreProducto\":\"")[1]
+                        .split("\"")[0];
+
+                int stock =
+                    Integer.parseInt(
+                        json.split("\"stock\":\"")[1]
+                            .split("\"")[0]
+                    );
+
+                BigDecimal precioUnitario =
+                    new BigDecimal(
+                        json.split("\"precioUnitario\":\"")[1]
+                            .split("\"")[0]
+                    );
+
+                String fechaTexto =
+                    json.split("\"fechaVencimiento\":\"")[1]
+                        .split("\"")[0];
+
+                String descripcion =
+                    json.split("\"descripcion\":\"")[1]
+                        .split("\"")[0];
+
+                Producto p = new Producto();
+
+                p.setIdProveedor(idProveedor);
+                p.setCodigoSKU(codigoSKU);
+                p.setNombreProducto(nombreProducto);
+                p.setStock(stock);
+                p.setPrecioUnitario(precioUnitario);
+                p.setDescripcion(descripcion);
+
+                if (!fechaTexto.isEmpty()) {
+                    p.setFechaVencimiento(
+                        java.sql.Date.valueOf(fechaTexto)
+                    );
+                }
+
+                dao.insertar(p);
+
+                response.setContentType("application/json");
+                response.getWriter().write("{\"mensaje\":\"ok\"}");
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+
+                response.setStatus(500);
+
+                response.getWriter().write(
+                    "{\"error\":\"" +
+                    e.getMessage() +
+                    "\"}"
+                );
+            }
+
             return;
         }
 
