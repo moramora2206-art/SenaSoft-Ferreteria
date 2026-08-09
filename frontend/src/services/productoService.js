@@ -1,4 +1,5 @@
-import api from "./api";
+import api, { API_BASE_URL } from "./api";
+import axios from "axios";
 
 export const listarProductos = async (busqueda = "", categoria = "", idProveedor = "") => {
     const params = new URLSearchParams();
@@ -27,5 +28,32 @@ export const actualizarProducto = async (producto) => {
 
 export const eliminarProducto = async (id) => {
     const response = await api.delete(`/productos.php?id=${id}`);
+    return response.data;
+};
+
+// Subir imagen (multipart/form-data) a /api/productos/upload_imagen.php
+export const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("imagen", file);
+
+    // Build upload URL based on API_BASE_URL
+    let postUrl = API_BASE_URL;
+    if (postUrl.endsWith('/api')) {
+        postUrl = postUrl + '/productos/upload_imagen.php';
+    } else if (postUrl.endsWith('/api/')) {
+        postUrl = postUrl + 'productos/upload_imagen.php';
+    } else if (postUrl.endsWith('/')) {
+        postUrl = postUrl + 'api/productos/upload_imagen.php';
+    } else {
+        postUrl = postUrl + '/api/productos/upload_imagen.php';
+    }
+
+    // Use axios directly to avoid JSON Content-Type
+    const response = await axios.post(postUrl, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+
     return response.data;
 };
