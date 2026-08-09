@@ -1,0 +1,15 @@
+# Ignorar archivo de variables de entorno con credenciales locales
+.env
+
+# Ignorar el directorio de builds de frontend
+/frontend/dist
+
+# Node modules en frontend
+/frontend/node_modules
+
+# IDE
+/.idea
+/.vscode
+
+# Logs
+*.log
