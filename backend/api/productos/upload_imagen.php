@@ -40,7 +40,11 @@ if (!is_dir($uploadDir)) {
 
 // Nombre seguro
 $ext = $allowed[$mime];
-$baseName = bin2hex(random_bytes(8));
+try {
+    $baseName = bin2hex(random_bytes(8));
+} catch (Exception $e) {
+    $baseName = time() . '_' . bin2hex(openssl_random_pseudo_bytes(6));
+}
 $filename = $baseName . '.' . $ext;
 $target = $uploadDir . DIRECTORY_SEPARATOR . $filename;
 
@@ -51,4 +55,17 @@ if (!move_uploaded_file($archivo['tmp_name'], $target)) {
 // Normalizar ruta relativa para guardar en BD (ruta desde backend/uploads/productos)
 $relativePath = 'uploads/productos/' . $filename;
 
-jsonResponse(true, 'Imagen subida correctamente', ['ruta' => $relativePath], 201);
+// Construir URL pública basada en la petición actual o en APP_ORIGIN
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : null;
+$backendBase = null;
+if ($host) {
+    $backendBase = $scheme . '://' . $host;
+} else {
+    // Fallback a APP_ORIGIN si está configurada
+    $backendBase = env('APP_ORIGIN', 'http://localhost:8000');
+}
+
+$publicUrl = rtrim($backendBase, '/') . '/' . $relativePath;
+
+jsonResponse(true, 'Imagen subida correctamente', ['ruta' => $relativePath, 'url' => $publicUrl], 201);
