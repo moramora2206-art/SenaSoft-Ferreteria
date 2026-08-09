@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { guardarProducto } from "../services/productoService";
+import { guardarProducto, uploadImage } from "../services/productoService";
 import { listarProveedores } from "../services/proveedorService";
 
 function ProductoForm({ recargar, cancelar }) {
@@ -19,6 +19,9 @@ function ProductoForm({ recargar, cancelar }) {
     const [proveedores, setProveedores] = useState([]);
     const [guardando, setGuardando] = useState(false);
 
+    const [imagenFile, setImagenFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+
     useEffect(() => {
         cargarProveedores();
     }, []);
@@ -35,10 +38,39 @@ function ProductoForm({ recargar, cancelar }) {
     };
 
     const handleChange = (e) => {
-        setProducto({
-            ...producto,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        setProducto((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+
+        // If user types into imagen URL field, clear any selected file
+        if (name === 'imagen' && value) {
+            setImagenFile(null);
+            setPreviewUrl(value);
+        }
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        // Validate size (<=5MB) and type
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('El archivo excede el tamaño máximo de 5 MB');
+            return;
+        }
+        const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowed.includes(file.type)) {
+            alert('Tipo de archivo no permitido. Use JPG, PNG o WEBP.');
+            return;
+        }
+        setImagenFile(file);
+        // Preview
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+        // clear imagen URL field
+        setProducto((prev) => ({ ...prev, imagen: '' }));
     };
 
     const handleSubmit = async (e) => {
@@ -46,12 +78,26 @@ function ProductoForm({ recargar, cancelar }) {
         setGuardando(true);
 
         try {
-            const res = await guardarProducto(producto);
-            if (res.success) {
+            const envio = { ...producto };
+
+            // If a file was selected, upload it first
+            if (imagenFile) {
+                const res = await uploadImage(imagenFile);
+                if (res && res.success && res.data && res.data.ruta) {
+                    envio.imagen = res.data.ruta;
+                } else {
+                    alert(res.message || 'Error al subir la imagen');
+                    setGuardando(false);
+                    return;
+                }
+            }
+
+            const resGuardar = await guardarProducto(envio);
+            if (resGuardar.success) {
                 alert("Producto registrado correctamente en el inventario.");
                 recargar();
             } else {
-                alert(res.message || "Error al guardar el producto.");
+                alert(resGuardar.message || "Error al guardar el producto.");
             }
         } catch (error) {
             console.error(error);
@@ -192,7 +238,7 @@ function ProductoForm({ recargar, cancelar }) {
 
                         {/* Imagen URL */}
                         <div className="col-md-8">
-                            <label className="form-label fw-semibold">URL de la Imagen del Producto</label>
+                            <label className="form-label fw-semibold">URL de la Imagen del Producto (opcional)</label>
                             <input
                                 type="url"
                                 className="form-control"
@@ -202,6 +248,27 @@ function ProductoForm({ recargar, cancelar }) {
                                 onChange={handleChange}
                             />
                         </div>
+
+                        {/* Imagen File upload */}
+                        <div className="col-md-4">
+                            <label className="form-label fw-semibold">O subir imagen (JPG/PNG/WEBP)</label>
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className="form-control"
+                                onChange={handleFileChange}
+                            />
+                        </div>
+
+                        {/* Preview */}
+                        {previewUrl && (
+                            <div className="col-12">
+                                <label className="form-label fw-semibold">Vista previa</label>
+                                <div>
+                                    <img src={previewUrl} alt="Preview" style={{ maxHeight: "120px", borderRadius: "6px" }} />
+                                </div>
+                            </div>
+                        )}
 
                         {/* Fecha Vencimiento */}
                         <div className="col-md-4">
