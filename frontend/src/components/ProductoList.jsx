@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { listarProductos, eliminarProducto } from "../services/productoService";
+import { API_BASE_URL } from "../services/api";
 
 function ProductoList({ editar, actualizar, onNuevo }) {
     const [productos, setProductos] = useState([]);
@@ -56,6 +57,19 @@ function ProductoList({ editar, actualizar, onNuevo }) {
         "Materiales de Construcción",
         "General"
     ];
+
+    const buildImageUrl = (imagen) => {
+        if (!imagen) return null;
+        if (imagen.startsWith("http://") || imagen.startsWith("https://")) return imagen;
+        // imagen is relative like uploads/productos/xxx.jpg
+        // API_BASE_URL usually ends with /api -> public base is without /api
+        try {
+            const publicBase = API_BASE_URL.replace(/\/api\/?$/, "");
+            return `${publicBase}/${imagen}`.replace(/([^:]?)\/\//g, "$1/");
+        } catch (e) {
+            return imagen;
+        }
+    };
 
     return (
         <div className="card shadow-sm border-0">
@@ -140,12 +154,14 @@ function ProductoList({ editar, actualizar, onNuevo }) {
                                         stockBadge = <span className="badge bg-warning text-dark">Stock Bajo ({p.stock})</span>;
                                     }
 
+                                    const imageSrc = buildImageUrl(p.imagen);
+
                                     return (
                                         <tr key={p.idProducto}>
                                             <td style={{ width: "60px" }}>
-                                                {p.imagen ? (
+                                                {imageSrc ? (
                                                     <img
-                                                        src={p.imagen}
+                                                        src={imageSrc}
                                                         alt={p.nombreProducto}
                                                         className="rounded border"
                                                         style={{ width: "45px", height: "45px", objectFit: "cover" }}
