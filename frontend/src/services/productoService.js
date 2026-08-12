@@ -57,3 +57,10 @@ export const uploadImage = async (file) => {
 
     return response.data;
 };
+
+// Registrar entrada de stock
+export const registrarEntradaStock = async (idProducto, cantidad) => {
+    const payload = { idProducto: Number(idProducto), cantidad: Number(cantidad) };
+    const response = await api.post("/productos/entrada_stock.php", payload);
+    return response.data;
+};
