@@ -8,6 +8,7 @@ import Clientes from "./pages/Clientes";
 import Proveedores from "./pages/Proveedores";
 import Usuarios from "./pages/Usuarios";
 import Facturas from "./pages/Facturas";
+import Login from "./pages/Login";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/proveedores" element={<Proveedores />} />
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/facturas" element={<Facturas />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </Layout>
     </BrowserRouter>
