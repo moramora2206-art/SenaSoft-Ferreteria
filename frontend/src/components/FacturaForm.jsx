@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+<<<<<<< HEAD
 import { guardarFactura } from "../services/facturaService";
 import { listarClientes } from "../services/clienteService";
 import { buscarProducto } from "../services/productoService";
@@ -237,10 +238,172 @@ function FacturaForm({ recargar, cancelar }) {
         subtotal - descuento
     );
 
+=======
+
+import { guardarFactura }
+from "../services/facturaService";
+
+import { listarClientes }
+from "../services/clienteService";
+
+import { buscarProducto }
+from "../services/productoService";
+
+function FacturaForm({ recargar }) {
+
+    const [factura, setFactura] = useState({
+
+        idCliente: "",
+        idUsuario: "",
+
+        formaDePago: "Efectivo",
+
+        descuento: 0,
+
+        observaciones: "",
+
+        detalles: []
+
+    });
+
+    const [clientes, setClientes] = useState([]);
+
+    const [nombreCliente, setNombreCliente] = useState("");
+
+    useEffect(() => {
+
+        cargarClientes();
+
+    }, []);
+
+    const cargarClientes = async () => {
+
+        const data =
+            await listarClientes();
+
+        setClientes(data);
+
+    };
+
+    const buscarCliente = (id) => {
+
+        const cliente =
+            clientes.find(
+                c => c.idCliente == id
+            );
+
+        if (cliente) {
+
+            setNombreCliente(
+                cliente.nombre +
+                " " +
+                cliente.apellido
+            );
+
+        } else {
+
+            setNombreCliente("");
+
+        }
+
+    };
+
+    const cargarProducto = async (id) => {
+
+        if (!id) return;
+
+        try {
+
+            const producto =
+                await buscarProducto(id);
+
+            setDetalle({
+
+                ...detalle,
+
+                idProducto: id,
+
+                nombreProducto:
+                    producto.nombre,
+
+                precioUnitario:
+                    producto.precio
+
+            });
+
+        } catch (error) {
+
+            console.log(error);
+
+        }
+
+    };
+
+    const [detalle, setDetalle] = useState({
+
+        idProducto: "",
+
+        nombreProducto: "",
+
+        cantidad: 1,
+
+        precioUnitario: 0
+
+    });
+
+    const agregarDetalle = () => {
+
+        const subtotal =
+
+            detalle.cantidad *
+
+            detalle.precioUnitario;
+
+        setFactura({
+
+            ...factura,
+
+            detalles: [
+
+                ...factura.detalles,
+
+                {
+                    ...detalle,
+                    subtotal
+                }
+
+            ]
+
+        });
+
+    };
+
+    const calcularTotal = () => {
+
+        const subtotal =
+
+            factura.detalles.reduce(
+
+                (acc, d) =>
+
+                    acc + d.subtotal,
+
+                0
+
+            );
+
+        return subtotal -
+
+            Number(factura.descuento);
+
+    };
+
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     const guardar = async (e) => {
 
         e.preventDefault();
 
+<<<<<<< HEAD
         if (!user?.idUsuario) {
             alert(
                 "No se pudo identificar al usuario actual. Cierre sesión e ingrese nuevamente."
@@ -446,11 +609,70 @@ function FacturaForm({ recargar, cancelar }) {
                                         ? `${user.nombre || ""} ${user.apellido || ""}`.trim()
                                         : "Sin usuario"
                                 }
+=======
+        await guardarFactura({
+
+            ...factura,
+
+            total:
+                calcularTotal()
+
+        });
+
+        alert("Factura guardada");
+
+        recargar();
+
+    };
+
+    return (
+
+        <div className="card shadow mb-4">
+
+            <div className="card-header">
+                Nueva Factura
+            </div>
+
+            <div className="card-body">
+
+                <form onSubmit={guardar}>
+
+                    <div className="row">
+
+                        <div className="col-md-3">
+
+                            <input
+                                className="form-control"
+                                placeholder="ID Cliente"
+
+                                onChange={(e) => {
+
+                                    const id =
+                                        e.target.value;
+
+                                    setFactura({
+
+                                        ...factura,
+
+                                        idCliente: id
+
+                                    });
+
+                                    buscarCliente(id);
+
+                                }}
+                            />
+
+                            <input
+                                className="form-control mt-2"
+                                value={nombreCliente}
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 readOnly
                             />
 
                         </div>
 
+<<<<<<< HEAD
                     </div>
 
                     <hr className="my-4" />
@@ -502,12 +724,78 @@ function FacturaForm({ recargar, cancelar }) {
                                         cargarProducto(detalle.idProducto);
                                     }
                                 }}
+=======
+                        <div className="col-md-3">
+
+                            <input
+                                className="form-control"
+                                placeholder="ID Usuario"
+                                onChange={(e)=>
+
+                                setFactura({
+                                    ...factura,
+                                    idUsuario:e.target.value
+                                })
+
+                                }
+                            />
+
+                        </div>
+
+                        <div className="col-md-3">
+
+                            <select
+                                className="form-select"
+
+                                onChange={(e)=>
+
+                                setFactura({
+                                    ...factura,
+                                    formaDePago:e.target.value
+                                })
+
+                                }
+                            >
+
+                                <option>Efectivo</option>
+                                <option>Tarjeta</option>
+                                <option>Transferencia</option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                    <hr />
+
+                    <h5>
+                        Productos
+                    </h5>
+
+                    <div className="row">
+
+                        <div className="col-md-2">
+
+                            <input
+                                className="form-control"
+                                placeholder="ID"
+
+                                onChange={(e) =>
+
+                                    cargarProducto(
+                                        e.target.value
+                                    )
+
+                                }
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             />
 
                         </div>
 
                         <div className="col-md-4">
 
+<<<<<<< HEAD
                             <label className="form-label fw-semibold">
                                 Producto
                             </label>
@@ -517,12 +805,27 @@ function FacturaForm({ recargar, cancelar }) {
                                 className="form-control"
                                 value={detalle.nombreProducto}
                                 readOnly
+=======
+                            <input
+                                className="form-control"
+                                value={detalle.nombreProducto}
+                                readOnly
+                                onChange={(e)=>
+
+                                setDetalle({
+                                    ...detalle,
+                                    nombreProducto:e.target.value
+                                })
+
+                                }
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             />
 
                         </div>
 
                         <div className="col-md-2">
 
+<<<<<<< HEAD
                             <label className="form-label fw-semibold">
                                 Cantidad
                             </label>
@@ -534,6 +837,19 @@ function FacturaForm({ recargar, cancelar }) {
                                 value={detalle.cantidad}
                                 onChange={(e) =>
                                     cambiarCantidad(e.target.value)
+=======
+                            <input
+                                type="number"
+                                className="form-control"
+                                placeholder="Cantidad"
+                                onChange={(e)=>
+
+                                setDetalle({
+                                    ...detalle,
+                                    cantidad:Number(e.target.value)
+                                })
+
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 }
                             />
 
@@ -541,6 +857,7 @@ function FacturaForm({ recargar, cancelar }) {
 
                         <div className="col-md-2">
 
+<<<<<<< HEAD
                             <label className="form-label fw-semibold">
                                 Precio
                             </label>
@@ -556,6 +873,21 @@ function FacturaForm({ recargar, cancelar }) {
                                         : "$0"
                                 }
                                 readOnly
+=======
+                            <input
+                                type="number"
+                                className="form-control"
+                                value={detalle.precioUnitario}
+                                readOnly
+                                onChange={(e)=>
+
+                                setDetalle({
+                                    ...detalle,
+                                    precioUnitario:Number(e.target.value)
+                                })
+
+                                }
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             />
 
                         </div>
@@ -564,10 +896,16 @@ function FacturaForm({ recargar, cancelar }) {
 
                             <button
                                 type="button"
+<<<<<<< HEAD
                                 className="btn btn-success w-100"
                                 onClick={agregarDetalle}
                             >
                                 <i className="bi bi-plus-lg me-1"></i>
+=======
+                                className="btn btn-success"
+                                onClick={agregarDetalle}
+                            >
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 Agregar
                             </button>
 
@@ -575,6 +913,7 @@ function FacturaForm({ recargar, cancelar }) {
 
                     </div>
 
+<<<<<<< HEAD
                     {detalle.idProducto && (
                         <div className="mt-2">
 
@@ -790,11 +1129,84 @@ function FacturaForm({ recargar, cancelar }) {
                                 </div>
 
                             </div>
+=======
+                    <table className="table mt-4">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio</th>
+                                <th>Subtotal</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {
+
+                            factura.detalles.map(
+
+                                (d,index)=>(
+
+                                <tr key={index}>
+
+                                    <td>{d.idProducto}</td>
+                                    <td>{d.nombreProducto}</td>
+                                    <td>{d.cantidad}</td>
+                                    <td>{d.precioUnitario}</td>
+                                    <td>{d.subtotal}</td>
+
+                                </tr>
+
+                            ))
+
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                    <div className="row">
+
+                        <div className="col-md-3">
+
+                            <input
+                                type="number"
+                                className="form-control"
+                                placeholder="Descuento"
+
+                                onChange={(e)=>
+
+                                setFactura({
+                                    ...factura,
+                                    descuento:e.target.value
+                                })
+
+                                }
+                            />
+
+                        </div>
+
+                        <div className="col-md-3">
+
+                            <input
+                                className="form-control"
+                                readOnly
+                                value={calcularTotal()}
+                            />
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                         </div>
 
                     </div>
 
+<<<<<<< HEAD
                     {/* BOTONES */}
 
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
@@ -833,13 +1245,27 @@ function FacturaForm({ recargar, cancelar }) {
                         </button>
 
                     </div>
+=======
+                    <button
+                        className="btn btn-primary mt-3"
+                        type="submit"
+                    >
+                        Guardar Factura
+                    </button>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                 </form>
 
             </div>
 
         </div>
+<<<<<<< HEAD
     );
+=======
+
+    );
+
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 }
 
 export default FacturaForm;

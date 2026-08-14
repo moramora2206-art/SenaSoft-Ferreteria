@@ -1,17 +1,28 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+<<<<<<< HEAD
 import { useLocation, useNavigate } from "react-router-dom";
 
 function Login() {
     const [usuario, setUsuario] = useState("");
     const [password, setPassword] = useState("");
+=======
+import { useNavigate } from "react-router-dom";
+
+function Login() {
+    const [usuario, setUsuario] = useState("root");
+    const [password, setPassword] = useState("Car*2011");
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     const [error, setError] = useState("");
     const [cargando, setCargando] = useState(false);
 
     const { login } = useAuth();
     const navigate = useNavigate();
+<<<<<<< HEAD
     const location = useLocation();
     const destino = location.state?.from?.pathname || "/";
+=======
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,6 +32,7 @@ function Login() {
         try {
             const res = await login(usuario, password);
             if (res.success) {
+<<<<<<< HEAD
                 navigate(destino, { replace: true });
             } else {
                 setError(res.message || "No fue posible iniciar sesión.");
@@ -28,6 +40,15 @@ function Login() {
         } catch (err) {
             console.error(err);
             setError("Ocurrió un error inesperado al iniciar sesión.");
+=======
+                navigate("/");
+            } else {
+                setError(res.message || "Credenciales incorrectas.");
+            }
+        } catch (err) {
+            console.error(err);
+            setError("No fue posible conectar con el servidor PHP.");
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         } finally {
             setCargando(false);
         }

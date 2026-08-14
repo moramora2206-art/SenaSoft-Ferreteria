@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { BrowserRouter, Navigate, Routes, Route, useLocation } from "react-router-dom";
+=======
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 import Layout from "./components/Layout";
 
@@ -9,6 +13,7 @@ import Proveedores from "./pages/Proveedores";
 import Usuarios from "./pages/Usuarios";
 import Facturas from "./pages/Facturas";
 import Login from "./pages/Login";
+<<<<<<< HEAD
 import Ventas from "./pages/Ventas";
 import { useAuth } from "./context/AuthContext";
 
@@ -48,12 +53,15 @@ function PublicLoginRoute() {
 
   return user ? <Navigate to="/" replace /> : <Login />;
 }
+=======
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 function App() {
   return (
     <BrowserRouter>
       <Layout>
         <Routes>
+<<<<<<< HEAD
           <Route path="/login" element={<PublicLoginRoute />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/productos" element={<ProtectedRoute><Productos /></ProtectedRoute>} />
@@ -62,6 +70,15 @@ function App() {
           <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
           <Route path="/facturas" element={<ProtectedRoute><Facturas /></ProtectedRoute>} />
           <Route path="/ventas" element={<ProtectedRoute><Ventas /></ProtectedRoute>} />
+=======
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/productos" element={<Productos />} />
+          <Route path="/clientes" element={<Clientes />} />
+          <Route path="/proveedores" element={<Proveedores />} />
+          <Route path="/usuarios" element={<Usuarios />} />
+          <Route path="/facturas" element={<Facturas />} />
+          <Route path="/login" element={<Login />} />
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         </Routes>
       </Layout>
     </BrowserRouter>

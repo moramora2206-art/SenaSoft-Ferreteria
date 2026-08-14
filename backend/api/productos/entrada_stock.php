@@ -1,7 +1,12 @@
 <?php
 
+<<<<<<< HEAD
 require_once(__DIR__ . "/../../config/database.php");
 require_once(__DIR__ . "/../../models/Producto.php");
+=======
+require_once(__DIR__ . "/../config/database.php");
+require_once(__DIR__ . "/../models/Producto.php");
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 // Este endpoint registra una entrada de stock para un producto existente.
 // Espera JSON: { "idProducto": 123, "cantidad": 10 }

@@ -1,6 +1,10 @@
 <?php
 
+<<<<<<< HEAD
 require_once(__DIR__ . "/../models/Usuario.php");
+=======
+require_once("../models/Usuario.php");
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 class AuthController
 {
@@ -11,6 +15,7 @@ class AuthController
         $this->usuarioModel = new Usuario($conexion);
     }
 
+<<<<<<< HEAD
     public function registrar($datos)
     {
         if (
@@ -36,11 +41,33 @@ class AuthController
             ];
         }
 
+=======
+    // ===========================
+    // REGISTRAR USUARIO
+    // ===========================
+    public function registrar($datos)
+    {
+        $usuario = $datos->usuario;
+
+        // Verificar si el usuario ya existe
+        $resultado = $this->usuarioModel->buscarPorUsuario($usuario);
+
+        if ($resultado->num_rows > 0) {
+
+            return [
+                "success" => false,
+                "mensaje" => "El usuario ya existe."
+            ];
+        }
+
+        // Encriptar contraseña
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         $passwordHash = password_hash($datos->password, PASSWORD_DEFAULT);
 
         $ok = $this->usuarioModel->registrar(
             $usuario,
             $passwordHash,
+<<<<<<< HEAD
             trim($datos->nombre),
             isset($datos->apellido) ? trim($datos->apellido) : "",
             isset($datos->email) ? trim($datos->email) : "",
@@ -49,6 +76,17 @@ class AuthController
         );
 
         if ($ok) {
+=======
+            $datos->nombre,
+            $datos->apellido,
+            $datos->email,
+            $datos->celular,
+            $datos->rol
+        );
+
+        if ($ok) {
+
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
             return [
                 "success" => true,
                 "mensaje" => "Usuario registrado correctamente."
@@ -57,6 +95,7 @@ class AuthController
 
         return [
             "success" => false,
+<<<<<<< HEAD
             "mensaje" => "No fue posible registrar el usuario.",
             "errorCode" => "USER_CREATE_FAILED"
         ];
@@ -117,3 +156,46 @@ class AuthController
         ];
     }
 }
+=======
+            "mensaje" => "No fue posible registrar el usuario."
+        ];
+    }
+
+    // ===========================
+    // LOGIN
+    // ===========================
+    public function login($datos)
+    {
+        $resultado = $this->usuarioModel->buscarPorUsuario($datos->usuario);
+
+        if ($resultado->num_rows == 0) {
+
+            return [
+                "success" => false,
+                "mensaje" => "Usuario no encontrado."
+            ];
+        }
+
+        $usuario = $resultado->fetch_assoc();
+
+        if (password_verify($datos->password, $usuario["Contraseña"])) {
+
+            return [
+                "success" => true,
+                "mensaje" => "Autenticación satisfactoria.",
+                "usuario" => [
+                    "id" => $usuario["IDUsuario"],
+                    "nombre" => $usuario["Nombre"],
+                    "apellido" => $usuario["Apellido"],
+                    "rol" => $usuario["Rol"]
+                ]
+            ];
+        }
+
+        return [
+            "success" => false,
+            "mensaje" => "Contraseña incorrecta."
+        ];
+    }
+}
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566

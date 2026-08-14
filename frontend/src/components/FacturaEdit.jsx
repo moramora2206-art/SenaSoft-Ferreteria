@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { buscarFactura, anularFactura } from "../services/facturaService";
+=======
+import { buscarFactura, eliminarFactura } from "../services/facturaService";
+
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 /**
  * FacturaEdit — Visor de Detalle de Factura (Solo Lectura)
  *
@@ -33,7 +38,11 @@ function FacturaEdit({ facturaId, recargar, cerrar }) {
     const handleEliminar = async () => {
         if (!window.confirm("¿Está seguro de eliminar esta factura? Esta acción no se puede deshacer.")) return;
         try {
+<<<<<<< HEAD
             const res = await anularFactura(facturaId);
+=======
+            const res = await eliminarFactura(facturaId);
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
             if (res.success) {
                 alert("Factura eliminada correctamente.");
                 cerrar();

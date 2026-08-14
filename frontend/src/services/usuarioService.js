@@ -2,6 +2,7 @@ import api from "./api";
 
 export const listarUsuarios = async () => {
     const response = await api.get("/usuarios.php");
+<<<<<<< HEAD
 
     if (response.data?.success) {
         return Array.isArray(response.data.data)
@@ -10,6 +11,9 @@ export const listarUsuarios = async () => {
     }
 
     return [];
+=======
+    return response.data;
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 };
 
 export const buscarUsuario = async (id) => {

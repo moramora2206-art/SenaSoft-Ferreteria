@@ -1,5 +1,6 @@
 <?php
 
+<<<<<<< HEAD
 require_once(__DIR__ . "/../config/database.php");
 require_once(__DIR__ . "/../controllers/AuthController.php");
 
@@ -27,3 +28,17 @@ jsonResponse(
     $res["success"] ? 201 : 400,
     isset($res["errorCode"]) ? ["errorCode" => $res["errorCode"]] : []
 );
+=======
+header("Content-Type: application/json");
+
+require_once("../config/database.php");
+require_once("../controllers/AuthController.php");
+
+$datos = json_decode(file_get_contents("php://input"));
+
+$auth = new AuthController($conn);
+
+echo json_encode(
+    $auth->registrar($datos)
+);
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566

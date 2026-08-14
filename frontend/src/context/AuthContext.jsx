@@ -1,10 +1,14 @@
 import { createContext, useContext, useState, useEffect } from "react";
+<<<<<<< HEAD
 import {
     loginUsuario,
     logoutUsuario,
     getUsuarioActual,
     obtenerUsuarioSesion
 } from "../services/authService";
+=======
+import { loginUsuario, logoutUsuario, getUsuarioActual } from "../services/authService";
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 const AuthContext = createContext();
 
@@ -13,6 +17,7 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+<<<<<<< HEAD
         let activo = true;
 
         const cargarSesion = async () => {
@@ -40,6 +45,13 @@ export function AuthProvider({ children }) {
         return () => {
             activo = false;
         };
+=======
+        const u = getUsuarioActual();
+        if (u) {
+            setUser(u);
+        }
+        setLoading(false);
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     }, []);
 
     const login = async (usuario, password) => {
@@ -50,8 +62,13 @@ export function AuthProvider({ children }) {
         return res;
     };
 
+<<<<<<< HEAD
     const logout = async () => {
         await logoutUsuario();
+=======
+    const logout = () => {
+        logoutUsuario();
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         setUser(null);
     };
 

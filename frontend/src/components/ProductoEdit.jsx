@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -364,6 +365,61 @@ function ProductoEdit({
 
     const categoriasFerreteria = [
 
+=======
+import { useState, useEffect } from "react";
+import { actualizarProducto } from "../services/productoService";
+import { listarProveedores } from "../services/proveedorService";
+
+function ProductoEdit({ productoSeleccionado, recargar, cancelar }) {
+    const [producto, setProducto] = useState({ ...productoSeleccionado });
+    const [proveedores, setProveedores] = useState([]);
+    const [guardando, setGuardando] = useState(false);
+
+    useEffect(() => {
+        setProducto({ ...productoSeleccionado });
+        cargarProveedores();
+    }, [productoSeleccionado]);
+
+    const cargarProveedores = async () => {
+        try {
+            const res = await listarProveedores();
+            if (res && res.success) {
+                setProveedores(res.data || []);
+            }
+        } catch (e) {
+            console.error("Error al cargar proveedores", e);
+        }
+    };
+
+    const handleChange = (e) => {
+        setProducto({
+            ...producto,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setGuardando(true);
+
+        try {
+            const res = await actualizarProducto(producto);
+            if (res.success) {
+                alert("Producto actualizado correctamente.");
+                recargar();
+            } else {
+                alert(res.message || "Error al actualizar el producto.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error al intentar actualizar el producto.");
+        } finally {
+            setGuardando(false);
+        }
+    };
+
+    const categoriasFerreteria = [
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         "Herramientas Manuales",
         "Herramientas Eléctricas",
         "Plomería",
@@ -372,6 +428,7 @@ function ProductoEdit({
         "Fijaciones y Tornillería",
         "Materiales de Construcción",
         "General"
+<<<<<<< HEAD
 
     ];
 
@@ -423,10 +480,30 @@ function ProductoEdit({
                                 Nombre del Producto
                             </label>
 
+=======
+    ];
+
+    return (
+        <div className="card shadow border-0 mb-4">
+            <div className="card-header bg-primary text-white py-3 d-flex align-items-center justify-content-between">
+                <h5 className="fw-bold mb-0">
+                    <i className="bi bi-pencil-square me-2"></i>
+                    Editar Producto #{producto.idProducto}
+                </h5>
+                <button type="button" className="btn-close btn-close-white" onClick={cancelar}></button>
+            </div>
+
+            <div className="card-body p-4">
+                <form onSubmit={handleSubmit}>
+                    <div className="row g-3">
+                        <div className="col-md-6">
+                            <label className="form-label fw-semibold">Nombre del Producto</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="text"
                                 className="form-control"
                                 name="nombreProducto"
+<<<<<<< HEAD
                                 value={
                                     producto.nombreProducto ||
                                     ""
@@ -448,10 +525,21 @@ function ProductoEdit({
                                 SKU
                             </label>
 
+=======
+                                value={producto.nombreProducto || ""}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="col-md-3">
+                            <label className="form-label fw-semibold">SKU</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="text"
                                 className="form-control"
                                 name="codigoSKU"
+<<<<<<< HEAD
                                 value={
                                     producto.codigoSKU ||
                                     ""
@@ -566,10 +654,52 @@ function ProductoEdit({
                                 Existencias (Stock)
                             </label>
 
+=======
+                                value={producto.codigoSKU || ""}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="col-md-3">
+                            <label className="form-label fw-semibold">Categoría</label>
+                            <select
+                                className="form-select"
+                                name="categoria"
+                                value={producto.categoria || "General"}
+                                onChange={handleChange}
+                            >
+                                {categoriasFerreteria.map((cat) => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="col-md-6">
+                            <label className="form-label fw-semibold">Proveedor</label>
+                            <select
+                                className="form-select"
+                                name="idProveedor"
+                                value={producto.idProveedor || ""}
+                                onChange={handleChange}
+                            >
+                                <option value="">-- Seleccionar Proveedor --</option>
+                                {proveedores.map((p) => (
+                                    <option key={p.idProveedor} value={p.idProveedor}>
+                                        {p.nombreProveedor} (NIT: {p.nit})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="col-md-2">
+                            <label className="form-label fw-semibold">Existencias (Stock)</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="number"
                                 className="form-control"
                                 name="stock"
+<<<<<<< HEAD
                                 min="0"
                                 value={
                                     producto.stock || 0
@@ -591,11 +721,22 @@ function ProductoEdit({
                                 Precio Compra ($)
                             </label>
 
+=======
+                                value={producto.stock || 0}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="col-md-2">
+                            <label className="form-label fw-semibold">Precio Compra ($)</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="number"
                                 step="0.01"
                                 className="form-control"
                                 name="precioCompra"
+<<<<<<< HEAD
                                 value={
                                     producto.precioCompra ||
                                     ""
@@ -616,11 +757,21 @@ function ProductoEdit({
                                 Precio Venta ($)
                             </label>
 
+=======
+                                value={producto.precioCompra || ""}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="col-md-2">
+                            <label className="form-label fw-semibold">Precio Venta ($)</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="number"
                                 step="0.01"
                                 className="form-control"
                                 name="precioUnitario"
+<<<<<<< HEAD
                                 value={
                                     producto.precioUnitario ||
                                     0
@@ -642,10 +793,21 @@ function ProductoEdit({
                                 URL de la Imagen
                             </label>
 
+=======
+                                value={producto.precioUnitario || 0}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="col-md-8">
+                            <label className="form-label fw-semibold">URL Imagen</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="url"
                                 className="form-control"
                                 name="imagen"
+<<<<<<< HEAD
                                 value={
                                     producto.imagen ||
                                     ""
@@ -804,10 +966,20 @@ function ProductoEdit({
                                 Fecha Vencimiento
                             </label>
 
+=======
+                                value={producto.imagen || ""}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="col-md-4">
+                            <label className="form-label fw-semibold">Fecha Vencimiento</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="date"
                                 className="form-control"
                                 name="fechaVencimiento"
+<<<<<<< HEAD
                                 value={
                                     producto.fechaVencimiento ||
                                     ""
@@ -828,10 +1000,20 @@ function ProductoEdit({
                                 Descripción
                             </label>
 
+=======
+                                value={producto.fechaVencimiento || ""}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="col-12">
+                            <label className="form-label fw-semibold">Descripción</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <textarea
                                 rows="2"
                                 className="form-control"
                                 name="descripcion"
+<<<<<<< HEAD
                                 value={
                                     producto.descripcion ||
                                     ""
@@ -898,6 +1080,26 @@ function ProductoEdit({
 
     );
 
+=======
+                                value={producto.descripcion || ""}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <button type="button" className="btn btn-secondary" onClick={cancelar}>
+                            Cancelar
+                        </button>
+                        <button type="submit" className="btn btn-primary fw-bold" disabled={guardando}>
+                            {guardando ? "Guardando..." : "Actualizar Producto"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 }
 
 export default ProductoEdit;

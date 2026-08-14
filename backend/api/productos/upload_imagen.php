@@ -1,6 +1,10 @@
 <?php
 // Endpoint para subir imagenes de productos
+<<<<<<< HEAD
 require_once(__DIR__ . "/../../config/database.php");
+=======
+require_once(__DIR__ . "/../config/database.php");
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 // Solo POST multipart/form-data
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

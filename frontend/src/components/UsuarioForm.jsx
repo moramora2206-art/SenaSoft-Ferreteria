@@ -1,7 +1,16 @@
 import { useState } from "react";
+<<<<<<< HEAD
 import { guardarUsuario } from "../services/usuarioService";
 
 function UsuarioForm({ recargar, cancelar }) {
+=======
+
+import {
+    guardarUsuario
+} from "../services/usuarioService";
+
+function UsuarioForm({ recargar }) {
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
     const [usuario, setUsuario] = useState({
         usuario: "",
@@ -13,13 +22,19 @@ function UsuarioForm({ recargar, cancelar }) {
         rol: "Empleado"
     });
 
+<<<<<<< HEAD
     const [guardando, setGuardando] = useState(false);
 
     const handleChange = (e) => {
+=======
+    const handleChange = (e) => {
+
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         setUsuario({
             ...usuario,
             [e.target.name]: e.target.value
         });
+<<<<<<< HEAD
     };
 
     const handleSubmit = async (e) => {
@@ -119,10 +134,54 @@ function UsuarioForm({ recargar, cancelar }) {
                                 <span className="text-danger">*</span>
                             </label>
 
+=======
+
+    };
+
+    const handleSubmit = async (e) => {
+
+        e.preventDefault();
+
+        await guardarUsuario(usuario);
+
+        alert("Usuario registrado");
+
+        recargar();
+
+    };
+
+    return (
+
+        <div className="card shadow mb-4">
+
+            <div className="card-header">
+                Registrar Usuario
+            </div>
+
+            <div className="card-body">
+
+                <form onSubmit={handleSubmit}>
+
+                    <div className="row">
+
+                        <div className="col-md-6 mb-3">
+                            <label>Usuario</label>
+                            <input
+                                className="form-control"
+                                name="usuario"
+                                value={usuario.usuario}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                            <label>Contraseña</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="password"
                                 className="form-control"
                                 name="password"
+<<<<<<< HEAD
                                 placeholder="Ingrese una contraseña"
                                 value={usuario.password}
                                 onChange={handleChange}
@@ -212,12 +271,62 @@ function UsuarioForm({ recargar, cancelar }) {
                                 Rol{" "}
                                 <span className="text-danger">*</span>
                             </label>
+=======
+                                value={usuario.password}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                            <label>Nombre</label>
+                            <input
+                                className="form-control"
+                                name="nombre"
+                                value={usuario.nombre}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                            <label>Apellido</label>
+                            <input
+                                className="form-control"
+                                name="apellido"
+                                value={usuario.apellido}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                            <label>Email</label>
+                            <input
+                                className="form-control"
+                                name="email"
+                                value={usuario.email}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                            <label>Celular</label>
+                            <input
+                                className="form-control"
+                                name="nCelular"
+                                value={usuario.nCelular}
+                                onChange={handleChange}
+                            />
+                        </div>
+
+                        <div className="col-md-6 mb-3">
+                            <label>Rol</label>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                             <select
                                 className="form-select"
                                 name="rol"
                                 value={usuario.rol}
                                 onChange={handleChange}
+<<<<<<< HEAD
                                 required
                             >
 
@@ -229,12 +338,18 @@ function UsuarioForm({ recargar, cancelar }) {
                                     Empleado
                                 </option>
 
+=======
+                            >
+                                <option>Administrador</option>
+                                <option>Empleado</option>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             </select>
 
                         </div>
 
                     </div>
 
+<<<<<<< HEAD
                     {/* BOTONES */}
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
 
@@ -273,13 +388,27 @@ function UsuarioForm({ recargar, cancelar }) {
                         </button>
 
                     </div>
+=======
+                    <button
+                        className="btn btn-success"
+                        type="submit"
+                    >
+                        Guardar Usuario
+                    </button>
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                 </form>
 
             </div>
 
         </div>
+<<<<<<< HEAD
     );
+=======
+
+    );
+
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 }
 
 export default UsuarioForm;

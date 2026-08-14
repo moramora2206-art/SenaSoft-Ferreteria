@@ -47,7 +47,11 @@ class UsuarioController
         $usuario = trim($datos->usuario);
         
         $existente = $this->model->buscarPorUsuario($usuario);
+<<<<<<< HEAD
         if ($existente) {
+=======
+        if ($existente->num_rows > 0) {
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
             return [
                 "success" => false,
                 "message" => "El nombre de usuario ya se encuentra registrado."

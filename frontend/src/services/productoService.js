@@ -12,6 +12,7 @@ export const listarProductos = async (busqueda = "", categoria = "", idProveedor
 };
 
 export const buscarProducto = async (id) => {
+<<<<<<< HEAD
     try {
         const response = await api.get(
             `/productos.php?id=${encodeURIComponent(id)}`
@@ -35,6 +36,10 @@ export const buscarProducto = async (id) => {
             message: "No se pudo consultar el producto."
         };
     }
+=======
+    const response = await api.get(`/productos.php?id=${id}`);
+    return response.data;
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 };
 
 export const guardarProducto = async (producto) => {
@@ -73,8 +78,12 @@ export const uploadImage = async (file) => {
     const response = await axios.post(postUrl, formData, {
         headers: {
             'Content-Type': 'multipart/form-data'
+<<<<<<< HEAD
         },
         withCredentials: true
+=======
+        }
+>>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     });
 
     return response.data;
