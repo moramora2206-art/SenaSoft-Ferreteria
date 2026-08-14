@@ -1,0 +1,14 @@
+═══════════════════════════════════════════════════════════════
+ SISTEMA DE FACTURACIÓN - SENA
+ Tecnólogo en Análisis y Desarrollo de Software
+═══════════════════════════════════════════════════════════════
+
+ENLACE AL REPOSITORIO GITHUB:
+https://github.com/moramora2206-art/SenaSoft
+
+APRENDIZ: JDiego
+FICHA: 3140775
+INSTRUCTORA: Luz Karime
+ENTREGA: 2026
+
+═══════════════════════════════════════════════════════════════
