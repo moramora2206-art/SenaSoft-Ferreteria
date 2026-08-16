@@ -1,10 +1,6 @@
 <?php
 
-<<<<<<< HEAD
 require_once(__DIR__ . "/../models/Usuario.php");
-=======
-require_once("../models/Usuario.php");
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 class AuthController
 {
@@ -15,7 +11,6 @@ class AuthController
         $this->usuarioModel = new Usuario($conexion);
     }
 
-<<<<<<< HEAD
     public function registrar($datos)
     {
         if (
@@ -32,72 +27,81 @@ class AuthController
         }
 
         $usuario = trim($datos->usuario);
+        $password = (string)$datos->password;
+
+        if (strlen($password) < 6) {
+            return [
+                "success" => false,
+                "mensaje" => "La contraseña debe tener al menos 6 caracteres.",
+                "errorCode" => "INVALID_PASSWORD"
+            ];
+        }
+
+        $email = isset($datos->email) ? strtolower(trim($datos->email)) : "";
+
+        if ($email !== "" && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return [
+                "success" => false,
+                "mensaje" => "El correo electrónico no es válido.",
+                "errorCode" => "INVALID_EMAIL"
+            ];
+        }
 
         if ($this->usuarioModel->buscarPorUsuario($usuario)) {
             return [
                 "success" => false,
-                "mensaje" => "El usuario ya existe.",
-                "errorCode" => "USER_ALREADY_EXISTS"
+                "mensaje" => "El nombre de usuario ya está registrado.",
+                "errorCode" => "DUPLICATE_USERNAME"
             ];
         }
 
-=======
-    // ===========================
-    // REGISTRAR USUARIO
-    // ===========================
-    public function registrar($datos)
-    {
-        $usuario = $datos->usuario;
-
-        // Verificar si el usuario ya existe
-        $resultado = $this->usuarioModel->buscarPorUsuario($usuario);
-
-        if ($resultado->num_rows > 0) {
-
+        if ($email !== "" && $this->usuarioModel->buscarPorEmail($email)) {
             return [
                 "success" => false,
-                "mensaje" => "El usuario ya existe."
+                "mensaje" => "El correo electrónico ya está registrado.",
+                "errorCode" => "DUPLICATE_EMAIL"
             ];
         }
 
-        // Encriptar contraseña
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
-        $passwordHash = password_hash($datos->password, PASSWORD_DEFAULT);
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        $emailDb = $email === "" ? null : $email;
 
+        /*
+         * El registro público SIEMPRE crea usuarios con rol Empleado.
+         * Ignoramos cualquier "rol" enviado desde el cliente para
+         * evitar escalación de privilegios hacia Administrador.
+         */
         $ok = $this->usuarioModel->registrar(
             $usuario,
             $passwordHash,
-<<<<<<< HEAD
             trim($datos->nombre),
             isset($datos->apellido) ? trim($datos->apellido) : "",
-            isset($datos->email) ? trim($datos->email) : "",
+            $emailDb,
             isset($datos->celular) ? trim($datos->celular) : (isset($datos->nCelular) ? trim($datos->nCelular) : ""),
-            isset($datos->rol) ? trim($datos->rol) : "Empleado"
+            "Empleado"
         );
 
-        if ($ok) {
-=======
-            $datos->nombre,
-            $datos->apellido,
-            $datos->email,
-            $datos->celular,
-            $datos->rol
-        );
-
-        if ($ok) {
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
+        if ($ok === true) {
             return [
                 "success" => true,
                 "mensaje" => "Usuario registrado correctamente."
             ];
         }
 
+        if (is_string($ok)) {
+            return [
+                "success" => false,
+                "mensaje" => $ok === "DUPLICATE_EMAIL"
+                    ? "El correo electrónico ya está registrado."
+                    : "El nombre de usuario ya está registrado.",
+                "errorCode" => $ok
+            ];
+        }
+
         return [
             "success" => false,
-<<<<<<< HEAD
             "mensaje" => "No fue posible registrar el usuario.",
-            "errorCode" => "USER_CREATE_FAILED"
+            "errorCode" => "DATABASE_ERROR"
         ];
     }
 
@@ -156,46 +160,3 @@ class AuthController
         ];
     }
 }
-=======
-            "mensaje" => "No fue posible registrar el usuario."
-        ];
-    }
-
-    // ===========================
-    // LOGIN
-    // ===========================
-    public function login($datos)
-    {
-        $resultado = $this->usuarioModel->buscarPorUsuario($datos->usuario);
-
-        if ($resultado->num_rows == 0) {
-
-            return [
-                "success" => false,
-                "mensaje" => "Usuario no encontrado."
-            ];
-        }
-
-        $usuario = $resultado->fetch_assoc();
-
-        if (password_verify($datos->password, $usuario["Contraseña"])) {
-
-            return [
-                "success" => true,
-                "mensaje" => "Autenticación satisfactoria.",
-                "usuario" => [
-                    "id" => $usuario["IDUsuario"],
-                    "nombre" => $usuario["Nombre"],
-                    "apellido" => $usuario["Apellido"],
-                    "rol" => $usuario["Rol"]
-                ]
-            ];
-        }
-
-        return [
-            "success" => false,
-            "mensaje" => "Contraseña incorrecta."
-        ];
-    }
-}
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566

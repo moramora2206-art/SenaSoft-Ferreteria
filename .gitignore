@@ -1,15 +1,23 @@
-# Ignorar archivo de variables de entorno con credenciales locales
+# Variables de entorno con credenciales locales
 .env
+.env.local
 
-# Ignorar el directorio de builds de frontend
+# Node modules (frontend y raíz)
+/frontend/node_modules
+/node_modules
+
+# Build de frontend
 /frontend/dist
 
-# Node modules en frontend
-/frontend/node_modules
+# Imágenes subidas por el sistema (se conserva .gitkeep)
+/backend/uploads/productos/*
+!/backend/uploads/productos/.gitkeep
+
+# Archivos temporales y backups
+*.bak
+*.tmp
+*.log
 
 # IDE
 /.idea
 /.vscode
-
-# Logs
-*.log

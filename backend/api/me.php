@@ -1,9 +1,8 @@
 <?php
 
 require_once(__DIR__ . "/../config/database.php");
+require_once(__DIR__ . "/../config/auth.php");
 require_once(__DIR__ . "/../models/Usuario.php");
-
-startAppSession();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     jsonResponse(false, "Método no permitido.", null, 405, [
@@ -11,9 +10,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     ]);
 }
 
-$idUsuario = isset($_SESSION["idUsuario"]) ? intval($_SESSION["idUsuario"]) : 0;
+$idUsuario = obtenerUsuarioActual();
 
-if ($idUsuario <= 0) {
+if ($idUsuario === null) {
+    if (sesionExpirada()) {
+        destruirSesionExpirada();
+
+        jsonResponse(false, "Tu sesión ha expirado. Inicia sesión nuevamente.", null, 401, [
+            "errorCode" => "SESSION_EXPIRED"
+        ]);
+    }
+
     jsonResponse(false, "Sesión no válida.", null, 401, [
         "errorCode" => "INVALID_SESSION"
     ]);
@@ -23,9 +30,7 @@ $usuarioModel = new Usuario($conn);
 $usuario = $usuarioModel->buscarPorId($idUsuario);
 
 if (!$usuario) {
-    session_unset();
-    session_destroy();
-    clearAppSessionCookie();
+    destruirSesionExpirada();
 
     jsonResponse(false, "Sesión no válida.", null, 401, [
         "errorCode" => "INVALID_SESSION"

@@ -194,6 +194,66 @@ class Ventas
 
 
         /*
+         * LISTADO DE FACTURAS DEL PERÍODO
+         */
+        $sqlListado = "
+            SELECT
+
+                f.IdFactura AS idFactura,
+
+                f.Fecha_Venta AS fechaVenta,
+
+                CONCAT(
+                    c.Nombre,
+                    ' ',
+                    c.Apellido
+                ) AS nombreCliente,
+
+                f.Total AS total,
+
+                f.Estado AS estado
+
+            FROM factura f
+
+            LEFT JOIN clientes c
+                ON f.IdCliente =
+                   c.IdCliente
+
+            WHERE f.Fecha_Venta
+                BETWEEN ? AND ?
+
+            ORDER BY
+                f.Fecha_Venta DESC,
+                f.IdFactura DESC
+        ";
+
+        $stmt =
+            $this->conn->prepare(
+                $sqlListado
+            );
+
+        $stmt->bind_param(
+            "ss",
+            $inicio,
+            $fin
+        );
+
+        $stmt->execute();
+
+        $result =
+            $stmt->get_result();
+
+        $ventasListado = [];
+
+        while (
+            $row =
+            $result->fetch_assoc()
+        ) {
+            $ventasListado[] = $row;
+        }
+
+
+        /*
          * PRODUCTOS MÁS VENDIDOS
          */
         $sqlProductos = "
@@ -301,6 +361,9 @@ class Ventas
 
             "ventasPorPago" =>
                 $ventasPorPago,
+
+            "ventasListado" =>
+                $ventasListado,
 
             "productosMasVendidos" =>
                 $productosMasVendidos

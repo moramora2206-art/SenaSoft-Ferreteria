@@ -1,14 +1,10 @@
 import { createContext, useContext, useState, useEffect } from "react";
-<<<<<<< HEAD
 import {
     loginUsuario,
     logoutUsuario,
     getUsuarioActual,
     obtenerUsuarioSesion
 } from "../services/authService";
-=======
-import { loginUsuario, logoutUsuario, getUsuarioActual } from "../services/authService";
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 const AuthContext = createContext();
 
@@ -17,7 +13,6 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-<<<<<<< HEAD
         let activo = true;
 
         const cargarSesion = async () => {
@@ -33,7 +28,10 @@ export function AuthProvider({ children }) {
 
             if (res.success) {
                 setUser(res.data);
-            } else if (res.errorCode === "INVALID_SESSION") {
+            } else if (
+                res.errorCode === "INVALID_SESSION" ||
+                res.errorCode === "SESSION_EXPIRED"
+            ) {
                 setUser(null);
             }
 
@@ -42,33 +40,32 @@ export function AuthProvider({ children }) {
 
         cargarSesion();
 
+        // Si la sesión expira mientras la aplicación está abierta,
+        // el interceptor de api.js dispara este evento para cerrar sesión.
+        const manejarExpiracion = () => {
+            setUser(null);
+        };
+
+        window.addEventListener("auth:sesion-expirada", manejarExpiracion);
+
         return () => {
             activo = false;
+            window.removeEventListener("auth:sesion-expirada", manejarExpiracion);
         };
-=======
-        const u = getUsuarioActual();
-        if (u) {
-            setUser(u);
-        }
-        setLoading(false);
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     }, []);
 
     const login = async (usuario, password) => {
         const res = await loginUsuario(usuario, password);
         if (res.success) {
+            sessionStorage.removeItem("ferreteria_sesion_expirada");
             setUser(res.data);
         }
         return res;
     };
 
-<<<<<<< HEAD
     const logout = async () => {
         await logoutUsuario();
-=======
-    const logout = () => {
-        logoutUsuario();
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
+        sessionStorage.removeItem("ferreteria_sesion_expirada");
         setUser(null);
     };
 

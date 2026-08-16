@@ -1,14 +1,24 @@
-import api from "./api";
+import api, { normalizarErrorApi } from "./api";
 
 export const obtenerResumenVentas = async (
     inicio,
     fin
 ) => {
 
-    const response =
-        await api.get(
-            `/ventas.php?inicio=${inicio}&fin=${fin}`
-        );
+    try {
 
-    return response.data;
+        const response =
+            await api.get(
+                `/ventas.php?inicio=${inicio}&fin=${fin}`
+            );
+
+        return response.data;
+
+    } catch (error) {
+
+        return normalizarErrorApi(
+            error,
+            "No se pudo obtener el resumen de ventas."
+        );
+    }
 };

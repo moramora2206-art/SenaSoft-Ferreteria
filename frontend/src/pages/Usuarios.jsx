@@ -6,18 +6,14 @@ import UsuarioEdit from "../components/UsuarioEdit";
 
 function Usuarios() {
 
-<<<<<<< HEAD
     const [modo, setModo] = useState("lista");
 
-=======
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     const [usuarioEditar, setUsuarioEditar] = useState(null);
 
     const [actualizar, setActualizar] = useState(false);
 
     const recargar = () => {
 
-<<<<<<< HEAD
         setModo("lista");
 
         setUsuarioEditar(null);
@@ -48,19 +44,12 @@ function Usuarios() {
 
         setModo("lista");
 
-=======
-        setActualizar(!actualizar);
-
-        setUsuarioEditar(null);
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     };
 
     return (
 
         <div className="container-fluid">
 
-<<<<<<< HEAD
             <div className="mb-4">
 
                 <h2 className="fw-bold mb-1 text-dark">
@@ -107,23 +96,6 @@ function Usuarios() {
                 />
 
             )}
-=======
-            <h1 className="mb-4">
-                Gestión de Usuarios
-            </h1>
-
-            <UsuarioForm recargar={recargar} />
-
-            <UsuarioEdit
-                usuario={usuarioEditar}
-                recargar={recargar}
-            />
-
-            <UsuarioList
-                editar={setUsuarioEditar}
-                actualizar={actualizar}
-            />
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
         </div>
 

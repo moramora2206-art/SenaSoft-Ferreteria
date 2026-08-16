@@ -3,15 +3,11 @@
 class Usuario
 {
     private $conn;
-<<<<<<< HEAD
     private $passwordColumn = 'Contraseña';
-=======
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
     public function __construct($conexion)
     {
         $this->conn = $conexion;
-<<<<<<< HEAD
         $this->passwordColumn = $this->resolverColumnaPassword();
     }
 
@@ -55,13 +51,10 @@ class Usuario
                 Rol AS rol
             FROM usuarios
         ";
-=======
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     }
 
     public function buscarPorUsuario($usuario)
     {
-<<<<<<< HEAD
         $sql = $this->selectUsuarioBase() . " WHERE Usuario = ? LIMIT 1";
         $stmt = $this->conn->prepare($sql);
 
@@ -78,18 +71,34 @@ class Usuario
         }
 
         return $stmt->get_result()->fetch_assoc() ?: null;
-=======
-        $sql = "SELECT * FROM usuarios WHERE Usuario = ?";
+    }
+
+    public function buscarPorEmail($email)
+    {
+        if ($email === null || $email === '') {
+            return null;
+        }
+
+        $sql = $this->selectUsuarioBase() . " WHERE Email = ? LIMIT 1";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("s", $usuario);
-        $stmt->execute();
-        return $stmt->get_result();
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
+
+        if (!$stmt) {
+            error_log('Error preparando buscarPorEmail: ' . $this->conn->error);
+            return null;
+        }
+
+        $stmt->bind_param("s", $email);
+
+        if (!$stmt->execute()) {
+            error_log('Error ejecutando buscarPorEmail: ' . $stmt->error);
+            return null;
+        }
+
+        return $stmt->get_result()->fetch_assoc() ?: null;
     }
 
     public function buscarPorId($id)
     {
-<<<<<<< HEAD
         $sql = "
             SELECT
                 IdUsuario AS idUsuario,
@@ -118,18 +127,31 @@ class Usuario
         }
 
         return $stmt->get_result()->fetch_assoc() ?: null;
-=======
-        $sql = "SELECT IdUsuario as idUsuario, Usuario as usuario, Nombre as nombre, Apellido as apellido, Email as email, NCelular as nCelular, Rol as rol FROM usuarios WHERE IdUsuario = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_assoc();
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
+    }
+
+    private function ejecutarStmtConControlDuplicado($stmt)
+    {
+        if ($stmt->execute()) {
+            return true;
+        }
+
+        if ($stmt->errno === 1062) {
+            $mensaje = $stmt->error;
+            error_log('Violación de unicidad en usuarios: ' . $mensaje);
+
+            if (stripos($mensaje, 'Email') !== false) {
+                return 'DUPLICATE_EMAIL';
+            }
+
+            return 'DUPLICATE_USERNAME';
+        }
+
+        error_log('Error ejecutando operación sobre usuarios: ' . $stmt->error);
+        return false;
     }
 
     public function registrar($usuario, $password, $nombre, $apellido, $email, $celular, $rol)
     {
-<<<<<<< HEAD
         $sql = "
             INSERT INTO usuarios
                 (Usuario, {$this->col($this->passwordColumn)}, Nombre, Apellido, Email, NCelular, Rol)
@@ -143,17 +165,12 @@ class Usuario
             return false;
         }
 
-=======
-        $sql = "INSERT INTO usuarios (Usuario, Contraseña, Nombre, Apellido, Email, NCelular, Rol) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $this->conn->prepare($sql);
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         $stmt->bind_param("sssssss", $usuario, $password, $nombre, $apellido, $email, $celular, $rol);
-        return $stmt->execute();
+        return $this->ejecutarStmtConControlDuplicado($stmt);
     }
 
     public function listar()
     {
-<<<<<<< HEAD
         $sql = "
             SELECT
                 IdUsuario AS idUsuario,
@@ -180,21 +197,12 @@ class Usuario
             $usuarios[] = $row;
         }
 
-=======
-        $sql = "SELECT IdUsuario as idUsuario, Usuario as usuario, Nombre as nombre, Apellido as apellido, Email as email, NCelular as nCelular, Rol as rol FROM usuarios ORDER BY Nombre ASC";
-        $result = $this->conn->query($sql);
-        $usuarios = [];
-        while ($row = $result->fetch_assoc()) {
-            $usuarios[] = $row;
-        }
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         return $usuarios;
     }
 
     public function actualizar($id, $usuario, $nombre, $apellido, $email, $celular, $rol, $password = null)
     {
         if ($password) {
-<<<<<<< HEAD
             $sql = "
                 UPDATE usuarios
                 SET Usuario = ?,
@@ -237,24 +245,13 @@ class Usuario
             $stmt->bind_param("ssssssi", $usuario, $nombre, $apellido, $email, $celular, $rol, $id);
         }
 
-=======
-            $sql = "UPDATE usuarios SET Usuario=?, Contraseña=?, Nombre=?, Apellido=?, Email=?, NCelular=?, Rol=? WHERE IdUsuario=?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("sssssssi", $usuario, $password, $nombre, $apellido, $email, $celular, $rol, $id);
-        } else {
-            $sql = "UPDATE usuarios SET Usuario=?, Nombre=?, Apellido=?, Email=?, NCelular=?, Rol=? WHERE IdUsuario=?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("ssssssi", $usuario, $nombre, $apellido, $email, $celular, $rol, $id);
-        }
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
-        return $stmt->execute();
+        return $this->ejecutarStmtConControlDuplicado($stmt);
     }
 
     public function eliminar($id)
     {
         $sql = "DELETE FROM usuarios WHERE IdUsuario = ?";
         $stmt = $this->conn->prepare($sql);
-<<<<<<< HEAD
 
         if (!$stmt) {
             error_log('Error preparando eliminar usuario: ' . $this->conn->error);
@@ -262,12 +259,28 @@ class Usuario
         }
 
         $stmt->bind_param("i", $id);
-        return $stmt->execute();
+
+        if ($stmt->execute()) {
+            return true;
+        }
+
+        if ($stmt->errno === 1451 || $stmt->errno === 1452) {
+            error_log('Violación de clave foránea al eliminar usuario: ' . $stmt->error);
+            return 'FOREIGN_KEY_CONSTRAINT';
+        }
+
+        error_log('Error eliminando usuario: ' . $stmt->error);
+        return false;
+    }
+
+    public function contarAdministradores()
+    {
+        $result = $this->conn->query("SELECT COUNT(*) AS total FROM usuarios WHERE Rol = 'Administrador'");
+
+        if (!$result) {
+            return 0;
+        }
+
+        return intval($result->fetch_assoc()['total']);
     }
 }
-=======
-        $stmt->bind_param("i", $id);
-        return $stmt->execute();
-    }
-}
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566

@@ -6,7 +6,6 @@ import {
 
 function UsuarioEdit({
     usuario,
-<<<<<<< HEAD
     recargar,
     cancelar
 }) {
@@ -47,16 +46,6 @@ function UsuarioEdit({
             });
 
         }
-=======
-    recargar
-}) {
-
-    const [datos, setDatos] = useState(usuario);
-
-    useEffect(() => {
-
-        setDatos(usuario);
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
     }, [usuario]);
 
@@ -75,7 +64,6 @@ function UsuarioEdit({
 
         e.preventDefault();
 
-<<<<<<< HEAD
         setGuardando(true);
 
         try {
@@ -169,39 +157,10 @@ function UsuarioEdit({
 
                             <input
                                 type="text"
-=======
-        await actualizarUsuario(datos);
-
-        alert("Usuario actualizado");
-
-        recargar();
-
-    };
-
-    return (
-
-        <div className="card shadow mb-4">
-
-            <div className="card-header">
-                Editar Usuario
-            </div>
-
-            <div className="card-body">
-
-                <form onSubmit={handleSubmit}>
-
-                    <div className="row">
-
-                        <div className="col-md-6 mb-3">
-                            <label>Usuario</label>
-
-                            <input
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 className="form-control"
                                 name="usuario"
                                 value={datos.usuario}
                                 onChange={handleChange}
-<<<<<<< HEAD
                                 required
                             />
 
@@ -213,19 +172,11 @@ function UsuarioEdit({
                             <label className="form-label fw-semibold">
                                 Nueva Contraseña
                             </label>
-=======
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Contraseña</label>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                             <input
                                 type="password"
                                 className="form-control"
                                 name="password"
-<<<<<<< HEAD
                                 value={datos.password}
                                 onChange={handleChange}
                                 placeholder="Dejar vacío para conservar la actual"
@@ -247,22 +198,10 @@ function UsuarioEdit({
 
                             <input
                                 type="text"
-=======
-                                value={datos.password || ""}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Nombre</label>
-
-                            <input
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 className="form-control"
                                 name="nombre"
                                 value={datos.nombre}
                                 onChange={handleChange}
-<<<<<<< HEAD
                                 required
                             />
 
@@ -277,21 +216,11 @@ function UsuarioEdit({
 
                             <input
                                 type="text"
-=======
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Apellido</label>
-
-                            <input
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 className="form-control"
                                 name="apellido"
                                 value={datos.apellido}
                                 onChange={handleChange}
                             />
-<<<<<<< HEAD
 
                         </div>
 
@@ -304,20 +233,11 @@ function UsuarioEdit({
 
                             <input
                                 type="email"
-=======
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Email</label>
-
-                            <input
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 className="form-control"
                                 name="email"
                                 value={datos.email}
                                 onChange={handleChange}
                             />
-<<<<<<< HEAD
 
                         </div>
 
@@ -330,20 +250,11 @@ function UsuarioEdit({
 
                             <input
                                 type="text"
-=======
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Celular</label>
-
-                            <input
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 className="form-control"
                                 name="nCelular"
                                 value={datos.nCelular}
                                 onChange={handleChange}
                             />
-<<<<<<< HEAD
 
                         </div>
 
@@ -354,25 +265,15 @@ function UsuarioEdit({
                                 Rol{" "}
                                 <span className="text-danger">*</span>
                             </label>
-=======
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Rol</label>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                             <select
                                 className="form-select"
                                 name="rol"
                                 value={datos.rol}
                                 onChange={handleChange}
-<<<<<<< HEAD
                                 required
                             >
 
-=======
-                            >
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 <option value="Administrador">
                                     Administrador
                                 </option>
@@ -380,18 +281,13 @@ function UsuarioEdit({
                                 <option value="Empleado">
                                     Empleado
                                 </option>
-<<<<<<< HEAD
 
                             </select>
 
-=======
-                            </select>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                         </div>
 
                     </div>
 
-<<<<<<< HEAD
                     {/* BOTONES */}
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
 
@@ -430,27 +326,13 @@ function UsuarioEdit({
                         </button>
 
                     </div>
-=======
-                    <button
-                        type="submit"
-                        className="btn btn-primary"
-                    >
-                        Actualizar Usuario
-                    </button>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                 </form>
 
             </div>
 
         </div>
-<<<<<<< HEAD
     );
-=======
-
-    );
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 }
 
 export default UsuarioEdit;

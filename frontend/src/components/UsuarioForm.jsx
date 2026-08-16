@@ -1,16 +1,38 @@
 import { useState } from "react";
-<<<<<<< HEAD
 import { guardarUsuario } from "../services/usuarioService";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ROLES_VALIDOS = ["Administrador", "Empleado"];
+
+function validar(datos) {
+    const errores = {};
+
+    if (!datos.usuario) {
+        errores.usuario = "El nombre de usuario es obligatorio.";
+    }
+
+    if (!datos.password) {
+        errores.password = "La contraseña es obligatoria.";
+    } else if (datos.password.length < 6) {
+        errores.password = "La contraseña debe tener al menos 6 caracteres.";
+    }
+
+    if (!datos.nombre) {
+        errores.nombre = "El nombre es obligatorio.";
+    }
+
+    if (datos.email && !EMAIL_REGEX.test(datos.email)) {
+        errores.email = "Ingresa un correo electrónico válido.";
+    }
+
+    if (!ROLES_VALIDOS.includes(datos.rol)) {
+        errores.rol = "Selecciona un rol válido.";
+    }
+
+    return errores;
+}
+
 function UsuarioForm({ recargar, cancelar }) {
-=======
-
-import {
-    guardarUsuario
-} from "../services/usuarioService";
-
-function UsuarioForm({ recargar }) {
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
     const [usuario, setUsuario] = useState({
         usuario: "",
@@ -22,29 +44,56 @@ function UsuarioForm({ recargar }) {
         rol: "Empleado"
     });
 
-<<<<<<< HEAD
     const [guardando, setGuardando] = useState(false);
+    const [errores, setErrores] = useState({});
+    const [mensajeGeneral, setMensajeGeneral] = useState("");
 
     const handleChange = (e) => {
-=======
-    const handleChange = (e) => {
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         setUsuario({
             ...usuario,
             [e.target.name]: e.target.value
         });
-<<<<<<< HEAD
+
+        if (errores[e.target.name]) {
+            setErrores((prev) => ({
+                ...prev,
+                [e.target.name]: undefined
+            }));
+        }
+
+        setMensajeGeneral("");
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        setMensajeGeneral("");
+
+        const datosLimpios = {
+            usuario: (usuario.usuario || "").trim(),
+            password: usuario.password || "",
+            nombre: (usuario.nombre || "").trim(),
+            apellido: (usuario.apellido || "").trim(),
+            email: (usuario.email || "").trim(),
+            nCelular: (usuario.nCelular || "").trim(),
+            rol: usuario.rol || "Empleado"
+        };
+
+        const erroresValidacion = validar(datosLimpios);
+
+        if (Object.keys(erroresValidacion).length > 0) {
+            setErrores(erroresValidacion);
+            setMensajeGeneral(
+                "Completa los campos obligatorios e intenta nuevamente."
+            );
+            return;
+        }
+
         setGuardando(true);
 
         try {
 
-            const res = await guardarUsuario(usuario);
+            const res = await guardarUsuario(datosLimpios);
 
             if (res && res.success) {
 
@@ -54,9 +103,9 @@ function UsuarioForm({ recargar }) {
 
             } else {
 
-                alert(
+                setMensajeGeneral(
                     res?.message ||
-                    "Error al registrar el usuario."
+                    "No fue posible registrar el usuario. Inténtalo nuevamente."
                 );
 
             }
@@ -65,8 +114,8 @@ function UsuarioForm({ recargar }) {
 
             console.error("Error al registrar usuario:", error);
 
-            alert(
-                "Error al conectar con el servidor."
+            setMensajeGeneral(
+                "No fue posible conectar con el servidor. Inténtalo nuevamente."
             );
 
         } finally {
@@ -102,7 +151,14 @@ function UsuarioForm({ recargar }) {
             {/* CONTENIDO */}
             <div className="card-body p-4">
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} noValidate>
+
+                    {mensajeGeneral && (
+                        <div className="alert alert-danger py-2" role="alert">
+                            <i className="bi bi-exclamation-triangle me-2"></i>
+                            {mensajeGeneral}
+                        </div>
+                    )}
 
                     <div className="row g-3">
 
@@ -116,13 +172,22 @@ function UsuarioForm({ recargar }) {
 
                             <input
                                 type="text"
-                                className="form-control"
+                                className={
+                                    "form-control" +
+                                    (errores.usuario ? " is-invalid" : "")
+                                }
                                 name="usuario"
                                 placeholder="Ej. jperez"
                                 value={usuario.usuario}
                                 onChange={handleChange}
                                 required
                             />
+
+                            {errores.usuario && (
+                                <div className="invalid-feedback">
+                                    {errores.usuario}
+                                </div>
+                            )}
 
                         </div>
 
@@ -134,59 +199,24 @@ function UsuarioForm({ recargar }) {
                                 <span className="text-danger">*</span>
                             </label>
 
-=======
-
-    };
-
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
-
-        await guardarUsuario(usuario);
-
-        alert("Usuario registrado");
-
-        recargar();
-
-    };
-
-    return (
-
-        <div className="card shadow mb-4">
-
-            <div className="card-header">
-                Registrar Usuario
-            </div>
-
-            <div className="card-body">
-
-                <form onSubmit={handleSubmit}>
-
-                    <div className="row">
-
-                        <div className="col-md-6 mb-3">
-                            <label>Usuario</label>
-                            <input
-                                className="form-control"
-                                name="usuario"
-                                value={usuario.usuario}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Contraseña</label>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="password"
-                                className="form-control"
+                                className={
+                                    "form-control" +
+                                    (errores.password ? " is-invalid" : "")
+                                }
                                 name="password"
-<<<<<<< HEAD
-                                placeholder="Ingrese una contraseña"
+                                placeholder="Mínimo 6 caracteres"
                                 value={usuario.password}
                                 onChange={handleChange}
                                 required
                             />
+
+                            {errores.password && (
+                                <div className="invalid-feedback">
+                                    {errores.password}
+                                </div>
+                            )}
 
                         </div>
 
@@ -200,13 +230,22 @@ function UsuarioForm({ recargar }) {
 
                             <input
                                 type="text"
-                                className="form-control"
+                                className={
+                                    "form-control" +
+                                    (errores.nombre ? " is-invalid" : "")
+                                }
                                 name="nombre"
                                 placeholder="Ej. Juan"
                                 value={usuario.nombre}
                                 onChange={handleChange}
                                 required
                             />
+
+                            {errores.nombre && (
+                                <div className="invalid-feedback">
+                                    {errores.nombre}
+                                </div>
+                            )}
 
                         </div>
 
@@ -237,12 +276,21 @@ function UsuarioForm({ recargar }) {
 
                             <input
                                 type="email"
-                                className="form-control"
+                                className={
+                                    "form-control" +
+                                    (errores.email ? " is-invalid" : "")
+                                }
                                 name="email"
                                 placeholder="usuario@correo.com"
                                 value={usuario.email}
                                 onChange={handleChange}
                             />
+
+                            {errores.email && (
+                                <div className="invalid-feedback">
+                                    {errores.email}
+                                </div>
+                            )}
 
                         </div>
 
@@ -271,62 +319,15 @@ function UsuarioForm({ recargar }) {
                                 Rol{" "}
                                 <span className="text-danger">*</span>
                             </label>
-=======
-                                value={usuario.password}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Nombre</label>
-                            <input
-                                className="form-control"
-                                name="nombre"
-                                value={usuario.nombre}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Apellido</label>
-                            <input
-                                className="form-control"
-                                name="apellido"
-                                value={usuario.apellido}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Email</label>
-                            <input
-                                className="form-control"
-                                name="email"
-                                value={usuario.email}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Celular</label>
-                            <input
-                                className="form-control"
-                                name="nCelular"
-                                value={usuario.nCelular}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Rol</label>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                             <select
-                                className="form-select"
+                                className={
+                                    "form-select" +
+                                    (errores.rol ? " is-invalid" : "")
+                                }
                                 name="rol"
                                 value={usuario.rol}
                                 onChange={handleChange}
-<<<<<<< HEAD
                                 required
                             >
 
@@ -338,18 +339,18 @@ function UsuarioForm({ recargar }) {
                                     Empleado
                                 </option>
 
-=======
-                            >
-                                <option>Administrador</option>
-                                <option>Empleado</option>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             </select>
+
+                            {errores.rol && (
+                                <div className="invalid-feedback">
+                                    {errores.rol}
+                                </div>
+                            )}
 
                         </div>
 
                     </div>
 
-<<<<<<< HEAD
                     {/* BOTONES */}
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
 
@@ -388,27 +389,13 @@ function UsuarioForm({ recargar }) {
                         </button>
 
                     </div>
-=======
-                    <button
-                        className="btn btn-success"
-                        type="submit"
-                    >
-                        Guardar Usuario
-                    </button>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                 </form>
 
             </div>
 
         </div>
-<<<<<<< HEAD
     );
-=======
-
-    );
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 }
 
 export default UsuarioForm;

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { BrowserRouter, Navigate, Routes, Route, useLocation } from "react-router-dom";
-=======
-import { BrowserRouter, Routes, Route } from "react-router-dom";
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 import Layout from "./components/Layout";
 
@@ -13,7 +9,6 @@ import Proveedores from "./pages/Proveedores";
 import Usuarios from "./pages/Usuarios";
 import Facturas from "./pages/Facturas";
 import Login from "./pages/Login";
-<<<<<<< HEAD
 import Ventas from "./pages/Ventas";
 import { useAuth } from "./context/AuthContext";
 
@@ -38,6 +33,44 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function AccesoDenegado() {
+  return (
+    <div className="container py-5">
+      <div className="text-center">
+        <i className="bi bi-shield-lock display-1 text-danger"></i>
+        <h2 className="mt-3">Acceso denegado</h2>
+        <p className="text-muted">
+          Solo los administradores pueden acceder a este módulo.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+        <div className="spinner-border text-warning" role="status">
+          <span className="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.rol !== "Administrador") {
+    return <AccesoDenegado />;
+  }
+
+  return children;
+}
+
 function PublicLoginRoute() {
   const { user, loading } = useAuth();
 
@@ -53,32 +86,20 @@ function PublicLoginRoute() {
 
   return user ? <Navigate to="/" replace /> : <Login />;
 }
-=======
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 function App() {
   return (
     <BrowserRouter>
       <Layout>
         <Routes>
-<<<<<<< HEAD
           <Route path="/login" element={<PublicLoginRoute />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/productos" element={<ProtectedRoute><Productos /></ProtectedRoute>} />
           <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
           <Route path="/proveedores" element={<ProtectedRoute><Proveedores /></ProtectedRoute>} />
-          <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
+          <Route path="/usuarios" element={<ProtectedRoute><AdminRoute><Usuarios /></AdminRoute></ProtectedRoute>} />
           <Route path="/facturas" element={<ProtectedRoute><Facturas /></ProtectedRoute>} />
           <Route path="/ventas" element={<ProtectedRoute><Ventas /></ProtectedRoute>} />
-=======
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/productos" element={<Productos />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/proveedores" element={<Proveedores />} />
-          <Route path="/usuarios" element={<Usuarios />} />
-          <Route path="/facturas" element={<Facturas />} />
-          <Route path="/login" element={<Login />} />
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         </Routes>
       </Layout>
     </BrowserRouter>

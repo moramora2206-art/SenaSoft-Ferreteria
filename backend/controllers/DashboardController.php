@@ -13,10 +13,23 @@ class DashboardController
 
     public function obtenerMetricas()
     {
-        $metricas = $this->model->obtenerMetricas();
-        return [
-            "success" => true,
-            "data" => $metricas
-        ];
+        try {
+
+            $metricas = $this->model->obtenerMetricas();
+            return [
+                "success" => true,
+                "data" => $metricas
+            ];
+
+        } catch (Exception $e) {
+
+            error_log('Error en métricas del dashboard: ' . $e->getMessage());
+
+            return [
+                "success" => false,
+                "errorCode" => "DATABASE_ERROR",
+                "message" => "No fue posible cargar las métricas. Inténtalo nuevamente."
+            ];
+        }
     }
 }

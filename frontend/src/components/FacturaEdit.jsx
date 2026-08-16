@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-<<<<<<< HEAD
 import { buscarFactura, anularFactura } from "../services/facturaService";
-=======
-import { buscarFactura, eliminarFactura } from "../services/facturaService";
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 /**
  * FacturaEdit — Visor de Detalle de Factura (Solo Lectura)
  *
@@ -36,22 +31,23 @@ function FacturaEdit({ facturaId, recargar, cerrar }) {
     };
 
     const handleEliminar = async () => {
-        if (!window.confirm("¿Está seguro de eliminar esta factura? Esta acción no se puede deshacer.")) return;
+        if (
+            !window.confirm(
+                `¿Está seguro de anular la factura #${facturaId}?\n\n` +
+                "El stock de los productos será devuelto al inventario."
+            )
+        ) return;
         try {
-<<<<<<< HEAD
             const res = await anularFactura(facturaId);
-=======
-            const res = await eliminarFactura(facturaId);
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
             if (res.success) {
-                alert("Factura eliminada correctamente.");
+                alert("Factura anulada correctamente. El stock fue devuelto.");
                 cerrar();
                 recargar();
             } else {
-                alert(res.message || "No se pudo eliminar la factura.");
+                alert(res.message || "No se pudo anular la factura.");
             }
-        } catch (err) {
-            alert("Error al intentar eliminar la factura.");
+        } catch {
+            alert("Error al intentar anular la factura.");
         }
     };
 
@@ -151,7 +147,7 @@ function FacturaEdit({ facturaId, recargar, cerrar }) {
                 <div className="d-flex justify-content-between align-items-center pt-3 border-top">
                     <div className="text-muted small">
                         <i className="bi bi-info-circle me-1"></i>
-                        Las facturas registradas no pueden modificarse. Elimínela si desea registrar una corrección.
+                        Las facturas registradas no pueden modificarse. Anúlela si desea devolver stock o registrar una corrección.
                     </div>
                     <div className="d-flex gap-2">
                         <button type="button" className="btn btn-outline-secondary" onClick={cerrar}>

@@ -40,7 +40,7 @@ function ClienteList({ editar, actualizar, onNuevo }) {
             } else {
                 alert(res.message || "No se pudo eliminar el cliente.");
             }
-        } catch (err) {
+        } catch {
             alert("Error al eliminar el cliente.");
         }
     };
@@ -57,13 +57,8 @@ function ClienteList({ editar, actualizar, onNuevo }) {
                     </div>
 
                     <div className="col-12 col-md-6">
-<<<<<<< HEAD
                         <div className="d-flex flex-wrap gap-2 justify-content-md-end">
                             <form onSubmit={handleSearchSubmit} className="d-flex gap-2 flex-grow-1">
-=======
-                        <div className="d-flex gap-2 justify-content-md-end">
-                            <form onSubmit={handleSearchSubmit} className="d-flex gap-2">
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 <input
                                     type="text"
                                     className="form-control form-control-sm"

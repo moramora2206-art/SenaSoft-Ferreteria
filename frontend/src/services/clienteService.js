@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { normalizarErrorApi } from "./api";
 
 export const listarClientes = async (busqueda = "") => {
     const params = busqueda ? `?busqueda=${encodeURIComponent(busqueda)}` : "";
@@ -12,16 +12,28 @@ export const buscarCliente = async (id) => {
 };
 
 export const guardarCliente = async (cliente) => {
-    const response = await api.post("/clientes.php", cliente);
-    return response.data;
+    try {
+        const response = await api.post("/clientes.php", cliente);
+        return response.data;
+    } catch (error) {
+        return normalizarErrorApi(error, "No se pudo registrar el cliente.");
+    }
 };
 
 export const actualizarCliente = async (cliente) => {
-    const response = await api.put("/clientes.php", cliente);
-    return response.data;
+    try {
+        const response = await api.put("/clientes.php", cliente);
+        return response.data;
+    } catch (error) {
+        return normalizarErrorApi(error, "No se pudo actualizar el cliente.");
+    }
 };
 
 export const eliminarCliente = async (id) => {
-    const response = await api.delete(`/clientes.php?id=${id}`);
-    return response.data;
+    try {
+        const response = await api.delete(`/clientes.php?id=${id}`);
+        return response.data;
+    } catch (error) {
+        return normalizarErrorApi(error, "No se pudo eliminar el cliente.");
+    }
 };

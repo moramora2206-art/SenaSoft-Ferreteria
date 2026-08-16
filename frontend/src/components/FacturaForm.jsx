@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
-<<<<<<< HEAD
+
 import { guardarFactura } from "../services/facturaService";
 import { listarClientes } from "../services/clienteService";
-import { buscarProducto } from "../services/productoService";
+import { listarProductos } from "../services/productoService";
 import { useAuth } from "../context/AuthContext";
 
 function FacturaForm({ recargar, cancelar }) {
-
     const { user } = useAuth();
 
     const [clientes, setClientes] = useState([]);
+    const [guardando, setGuardando] = useState(false);
+    const [nombreCliente, setNombreCliente] = useState("");
+
+    const [termino, setTermino] = useState("");
+    const [resultados, setResultados] = useState([]);
+    const [buscandoProductos, setBuscandoProductos] = useState(false);
+
+    const hoyFecha =
+        new Date().toISOString().split("T")[0];
 
     const [factura, setFactura] = useState({
         idCliente: "",
@@ -27,25 +35,58 @@ function FacturaForm({ recargar, cancelar }) {
         stock: 0
     });
 
-    const [nombreCliente, setNombreCliente] = useState("");
-    const [guardando, setGuardando] = useState(false);
-
     useEffect(() => {
         cargarClientes();
     }, []);
 
+    // Búsqueda de productos con retardo (debounce)
+    useEffect(() => {
+        const terminoLimpio = termino.trim();
+
+        if (!terminoLimpio) {
+            setResultados([]);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            setBuscandoProductos(true);
+
+            try {
+                const respuesta =
+                    await listarProductos(terminoLimpio);
+
+                const lista = Array.isArray(respuesta?.data)
+                    ? respuesta.data
+                    : Array.isArray(respuesta)
+                        ? respuesta
+                        : [];
+
+                setResultados(lista);
+            } catch (error) {
+                console.error("Error buscando productos:", error);
+                setResultados([]);
+            } finally {
+                setBuscandoProductos(false);
+            }
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [termino]);
+
     const cargarClientes = async () => {
         try {
-            const data = await listarClientes();
+            const respuesta = await listarClientes();
 
-            if (Array.isArray(data)) {
-                setClientes(data);
-            } else if (data?.success && Array.isArray(data.data)) {
-                setClientes(data.data);
+            if (Array.isArray(respuesta)) {
+                setClientes(respuesta);
+            } else if (
+                respuesta?.success &&
+                Array.isArray(respuesta.data)
+            ) {
+                setClientes(respuesta.data);
             } else {
                 setClientes([]);
             }
-
         } catch (error) {
             console.error("Error cargando clientes:", error);
             setClientes([]);
@@ -53,7 +94,6 @@ function FacturaForm({ recargar, cancelar }) {
     };
 
     const seleccionarCliente = (id) => {
-
         const cliente = clientes.find(
             (c) => String(c.idCliente) === String(id)
         );
@@ -72,55 +112,39 @@ function FacturaForm({ recargar, cancelar }) {
         }));
     };
 
-    const cargarProducto = async (id) => {
-        if (!id) return;
-
-        try {
-            const respuesta = await buscarProducto(id);
-
-            const producto =
-                respuesta?.data ||
-                respuesta;
-
-            if (!producto) {
-                alert("Producto no encontrado.");
-                return;
-            }
-
+    const seleccionarResultado = (id) => {
+        if (!id) {
             setDetalle((prev) => ({
                 ...prev,
-                idProducto: id,
-                nombreProducto:
-                    producto.nombreProducto ||
-                    producto.nombre ||
-                    producto.Nombre_Producto ||
-                    "",
-                precioUnitario: Number(
-                    producto.precioUnitario ||
-                    producto.precio ||
-                    producto.Precio_Unitario ||
-                    0
-                ),
-                stock: Number(
-                    producto.stock ||
-                    producto.Stock ||
-                    0
-                )
+                idProducto: "",
+                nombreProducto: "",
+                precioUnitario: 0,
+                stock: 0
             }));
-
-        } catch (error) {
-            console.error("Error buscando producto:", error);
-
-            if (error?.response?.status === 404) {
-                alert(`No existe un producto con ID ${id}.`);
-            } else {
-                alert("No se pudo consultar el producto.");
-            }
+            return;
         }
+
+        const producto = resultados.find(
+            (p) => String(p.idProducto) === String(id)
+        );
+
+        if (!producto) return;
+
+        setDetalle({
+            idProducto: String(producto.idProducto),
+            nombreProducto:
+                producto.nombreProducto || "",
+            cantidad: 1,
+            precioUnitario: Number(
+                producto.precioUnitario ?? 0
+            ),
+            stock: Number(
+                producto.stock ?? 0
+            )
+        });
     };
 
     const cambiarCantidad = (valor) => {
-
         const cantidad = Number(valor);
 
         setDetalle((prev) => ({
@@ -130,14 +154,23 @@ function FacturaForm({ recargar, cancelar }) {
     };
 
     const agregarDetalle = () => {
-
         if (!detalle.idProducto) {
             alert("Seleccione un producto.");
             return;
         }
 
+        if (!detalle.nombreProducto) {
+            alert("Primero consulte un producto válido.");
+            return;
+        }
+
         if (detalle.cantidad <= 0) {
             alert("La cantidad debe ser mayor que cero.");
+            return;
+        }
+
+        if (detalle.stock <= 0) {
+            alert("El producto no tiene stock disponible.");
             return;
         }
 
@@ -150,14 +183,14 @@ function FacturaForm({ recargar, cancelar }) {
 
         const productoExistente = factura.detalles.find(
             (d) =>
-                String(d.idProducto) === String(detalle.idProducto)
+                String(d.idProducto) ===
+                String(detalle.idProducto)
         );
 
         if (productoExistente) {
-
             const nuevaCantidad =
-                productoExistente.cantidad +
-                detalle.cantidad;
+                Number(productoExistente.cantidad) +
+                Number(detalle.cantidad);
 
             if (nuevaCantidad > detalle.stock) {
                 alert(
@@ -172,21 +205,19 @@ function FacturaForm({ recargar, cancelar }) {
                     String(d.idProducto) ===
                     String(detalle.idProducto)
                         ? {
-                            ...d,
-                            cantidad: nuevaCantidad,
-                            subtotal:
-                                nuevaCantidad *
-                                d.precioUnitario
-                        }
+                              ...d,
+                              cantidad: nuevaCantidad,
+                              subtotal:
+                                  nuevaCantidad *
+                                  Number(d.precioUnitario)
+                          }
                         : d
                 )
             }));
-
         } else {
-
-            const subtotal =
-                detalle.cantidad *
-                detalle.precioUnitario;
+            const subtotalDetalle =
+                Number(detalle.cantidad) *
+                Number(detalle.precioUnitario);
 
             setFactura((prev) => ({
                 ...prev,
@@ -195,9 +226,11 @@ function FacturaForm({ recargar, cancelar }) {
                     {
                         idProducto: Number(detalle.idProducto),
                         nombreProducto: detalle.nombreProducto,
-                        cantidad: detalle.cantidad,
-                        precioUnitario: detalle.precioUnitario,
-                        subtotal
+                        cantidad: Number(detalle.cantidad),
+                        precioUnitario: Number(
+                            detalle.precioUnitario
+                        ),
+                        subtotal: subtotalDetalle
                     }
                 ]
             }));
@@ -213,7 +246,6 @@ function FacturaForm({ recargar, cancelar }) {
     };
 
     const eliminarDetalle = (index) => {
-
         setFactura((prev) => ({
             ...prev,
             detalles: prev.detalles.filter(
@@ -224,7 +256,8 @@ function FacturaForm({ recargar, cancelar }) {
 
     const subtotal = factura.detalles.reduce(
         (total, detalleActual) =>
-            total + Number(detalleActual.subtotal || 0),
+            total +
+            Number(detalleActual.subtotal || 0),
         0
     );
 
@@ -238,172 +271,9 @@ function FacturaForm({ recargar, cancelar }) {
         subtotal - descuento
     );
 
-=======
-
-import { guardarFactura }
-from "../services/facturaService";
-
-import { listarClientes }
-from "../services/clienteService";
-
-import { buscarProducto }
-from "../services/productoService";
-
-function FacturaForm({ recargar }) {
-
-    const [factura, setFactura] = useState({
-
-        idCliente: "",
-        idUsuario: "",
-
-        formaDePago: "Efectivo",
-
-        descuento: 0,
-
-        observaciones: "",
-
-        detalles: []
-
-    });
-
-    const [clientes, setClientes] = useState([]);
-
-    const [nombreCliente, setNombreCliente] = useState("");
-
-    useEffect(() => {
-
-        cargarClientes();
-
-    }, []);
-
-    const cargarClientes = async () => {
-
-        const data =
-            await listarClientes();
-
-        setClientes(data);
-
-    };
-
-    const buscarCliente = (id) => {
-
-        const cliente =
-            clientes.find(
-                c => c.idCliente == id
-            );
-
-        if (cliente) {
-
-            setNombreCliente(
-                cliente.nombre +
-                " " +
-                cliente.apellido
-            );
-
-        } else {
-
-            setNombreCliente("");
-
-        }
-
-    };
-
-    const cargarProducto = async (id) => {
-
-        if (!id) return;
-
-        try {
-
-            const producto =
-                await buscarProducto(id);
-
-            setDetalle({
-
-                ...detalle,
-
-                idProducto: id,
-
-                nombreProducto:
-                    producto.nombre,
-
-                precioUnitario:
-                    producto.precio
-
-            });
-
-        } catch (error) {
-
-            console.log(error);
-
-        }
-
-    };
-
-    const [detalle, setDetalle] = useState({
-
-        idProducto: "",
-
-        nombreProducto: "",
-
-        cantidad: 1,
-
-        precioUnitario: 0
-
-    });
-
-    const agregarDetalle = () => {
-
-        const subtotal =
-
-            detalle.cantidad *
-
-            detalle.precioUnitario;
-
-        setFactura({
-
-            ...factura,
-
-            detalles: [
-
-                ...factura.detalles,
-
-                {
-                    ...detalle,
-                    subtotal
-                }
-
-            ]
-
-        });
-
-    };
-
-    const calcularTotal = () => {
-
-        const subtotal =
-
-            factura.detalles.reduce(
-
-                (acc, d) =>
-
-                    acc + d.subtotal,
-
-                0
-
-            );
-
-        return subtotal -
-
-            Number(factura.descuento);
-
-    };
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     const guardar = async (e) => {
-
         e.preventDefault();
 
-<<<<<<< HEAD
         if (!user?.idUsuario) {
             alert(
                 "No se pudo identificar al usuario actual. Cierre sesión e ingrese nuevamente."
@@ -422,14 +292,15 @@ function FacturaForm({ recargar }) {
         }
 
         if (descuento > subtotal) {
-            alert("El descuento no puede superar el subtotal.");
+            alert(
+                "El descuento no puede superar el subtotal."
+            );
             return;
         }
 
         setGuardando(true);
 
         try {
-
             const datosFactura = {
                 idUsuario: Number(user.idUsuario),
                 idCliente: Number(factura.idCliente),
@@ -443,10 +314,9 @@ function FacturaForm({ recargar }) {
                 await guardarFactura(datosFactura);
 
             if (respuesta?.success) {
-
                 alert(
                     `Factura registrada correctamente.\n\nTotal: $${Number(
-                        respuesta.data?.total || total
+                        respuesta.data?.total ?? total
                     ).toLocaleString("es-CO")}`
                 );
 
@@ -460,18 +330,25 @@ function FacturaForm({ recargar }) {
 
                 setNombreCliente("");
 
-                recargar();
+                setDetalle({
+                    idProducto: "",
+                    nombreProducto: "",
+                    cantidad: 1,
+                    precioUnitario: 0,
+                    stock: 0
+                });
 
+                if (recargar) {
+                    recargar();
+                }
             } else {
-
                 alert(
                     respuesta?.message ||
+                    respuesta?.mensaje ||
                     "No se pudo registrar la factura."
                 );
             }
-
         } catch (error) {
-
             console.error(
                 "Error al guardar factura:",
                 error
@@ -483,18 +360,14 @@ function FacturaForm({ recargar }) {
                 "Error al conectar con el servidor.";
 
             alert(mensaje);
-
         } finally {
-
             setGuardando(false);
         }
     };
 
     return (
         <div className="card shadow border-0 mb-4">
-
             <div className="card-header bg-primary text-white py-3 d-flex align-items-center justify-content-between">
-
                 <h5 className="fw-bold mb-0">
                     <i className="bi bi-receipt-cutoff me-2"></i>
                     Nueva Factura
@@ -507,78 +380,91 @@ function FacturaForm({ recargar }) {
                         onClick={cancelar}
                     ></button>
                 )}
-
             </div>
 
             <div className="card-body p-4">
-
                 <form onSubmit={guardar}>
-
-                    {/* CLIENTE Y PAGO */}
-
+                    {/* CLIENTE, FECHA Y PAGO */}
                     <div className="row g-3">
-
-                        <div className="col-md-6">
-
+                        <div className="col-md-4">
                             <label className="form-label fw-semibold">
-                                Cliente <span className="text-danger">*</span>
+                                Cliente{" "}
+                                <span className="text-danger">
+                                    *
+                                </span>
                             </label>
 
                             <select
                                 className="form-select"
                                 value={factura.idCliente}
                                 onChange={(e) =>
-                                    seleccionarCliente(e.target.value)
+                                    seleccionarCliente(
+                                        e.target.value
+                                    )
                                 }
                                 required
                             >
-
                                 <option value="">
                                     Seleccione un cliente
                                 </option>
 
                                 {clientes.map((cliente) => (
-
                                     <option
                                         key={cliente.idCliente}
-                                        value={cliente.idCliente}
+                                        value={
+                                            cliente.idCliente
+                                        }
                                     >
                                         {cliente.nombre}{" "}
                                         {cliente.apellido}
                                         {" — "}
                                         {cliente.cedula}
                                     </option>
-
                                 ))}
-
                             </select>
 
                             {nombreCliente && (
                                 <small className="text-muted">
-                                    Cliente seleccionado: {nombreCliente}
+                                    Cliente seleccionado:{" "}
+                                    {nombreCliente}
                                 </small>
                             )}
-
                         </div>
 
                         <div className="col-md-3">
+                            <label className="form-label fw-semibold">
+                                Fecha
+                            </label>
 
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={hoyFecha}
+                                readOnly
+                                title="La fecha de la venta se registra automáticamente con la de hoy."
+                            />
+                        </div>
+
+                        <div className="col-md-2">
                             <label className="form-label fw-semibold">
                                 Forma de pago
                             </label>
 
                             <select
                                 className="form-select"
-                                value={factura.formaDePago}
+                                value={
+                                    factura.formaDePago
+                                }
                                 onChange={(e) =>
-                                    setFactura((prev) => ({
-                                        ...prev,
-                                        formaDePago:
-                                            e.target.value
-                                    }))
+                                    setFactura(
+                                        (prev) => ({
+                                            ...prev,
+                                            formaDePago:
+                                                e.target.value
+                                        })
+                                    )
                                 }
                             >
-
                                 <option value="Efectivo">
                                     Efectivo
                                 </option>
@@ -590,13 +476,10 @@ function FacturaForm({ recargar }) {
                                 <option value="Transferencia">
                                     Transferencia
                                 </option>
-
                             </select>
-
                         </div>
 
                         <div className="col-md-3">
-
                             <label className="form-label fw-semibold">
                                 Usuario
                             </label>
@@ -606,332 +489,175 @@ function FacturaForm({ recargar }) {
                                 className="form-control"
                                 value={
                                     user
-                                        ? `${user.nombre || ""} ${user.apellido || ""}`.trim()
+                                        ? `${user.nombre || ""} ${
+                                              user.apellido || ""
+                                          }`.trim()
                                         : "Sin usuario"
                                 }
-=======
-        await guardarFactura({
-
-            ...factura,
-
-            total:
-                calcularTotal()
-
-        });
-
-        alert("Factura guardada");
-
-        recargar();
-
-    };
-
-    return (
-
-        <div className="card shadow mb-4">
-
-            <div className="card-header">
-                Nueva Factura
-            </div>
-
-            <div className="card-body">
-
-                <form onSubmit={guardar}>
-
-                    <div className="row">
-
-                        <div className="col-md-3">
-
-                            <input
-                                className="form-control"
-                                placeholder="ID Cliente"
-
-                                onChange={(e) => {
-
-                                    const id =
-                                        e.target.value;
-
-                                    setFactura({
-
-                                        ...factura,
-
-                                        idCliente: id
-
-                                    });
-
-                                    buscarCliente(id);
-
-                                }}
-                            />
-
-                            <input
-                                className="form-control mt-2"
-                                value={nombreCliente}
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                                 readOnly
                             />
-
                         </div>
-
-<<<<<<< HEAD
                     </div>
 
                     <hr className="my-4" />
 
                     {/* PRODUCTOS */}
-
                     <div className="d-flex align-items-center mb-3">
-
                         <h5 className="fw-bold mb-0">
-
                             <i className="bi bi-cart-plus text-primary me-2"></i>
-
                             Productos
-
                         </h5>
-
                     </div>
 
                     <div className="row g-3 align-items-end">
-
-                        <div className="col-md-2">
-
+                        <div className="col-md-6">
                             <label className="form-label fw-semibold">
-                                ID Producto
+                                Buscar producto (nombre o SKU)
                             </label>
 
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                className="form-control"
-                                placeholder="Ej. 12"
-                                value={detalle.idProducto}
-                                onChange={(e) => {
-                                    const valor = e.target.value.replace(/\D/g, "");
-
-                                    setDetalle((prev) => ({
-                                        ...prev,
-                                        idProducto: valor
-                                    }));
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                        cargarProducto(detalle.idProducto);
+                            <div className="input-group">
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Ej. Martillo, CLA-001..."
+                                    value={termino}
+                                    onChange={(e) =>
+                                        setTermino(
+                                            e.target.value
+                                        )
                                     }
-                                }}
-                                onBlur={() => {
-                                    if (detalle.idProducto) {
-                                        cargarProducto(detalle.idProducto);
-                                    }
-                                }}
-=======
-                        <div className="col-md-3">
+                                />
 
-                            <input
-                                className="form-control"
-                                placeholder="ID Usuario"
-                                onChange={(e)=>
+                                <span className="input-group-text bg-white">
+                                    <i
+                                        className={`bi ${
+                                            buscandoProductos
+                                                ? "bi-arrow-repeat text-warning"
+                                                : "bi-search text-muted"
+                                        }`}
+                                    ></i>
+                                </span>
+                            </div>
 
-                                setFactura({
-                                    ...factura,
-                                    idUsuario:e.target.value
-                                })
-
-                                }
-                            />
-
+                            <small className="form-text text-muted">
+                                {resultados.length > 0
+                                    ? `${resultados.length} producto(s) encontrado(s).`
+                                    : "Escriba para buscar en el catálogo."}
+                            </small>
                         </div>
 
-                        <div className="col-md-3">
+                        <div className="col-md-6">
+                            <label className="form-label fw-semibold">
+                                Resultados
+                            </label>
 
                             <select
                                 className="form-select"
-
-                                onChange={(e)=>
-
-                                setFactura({
-                                    ...factura,
-                                    formaDePago:e.target.value
-                                })
-
-                                }
-                            >
-
-                                <option>Efectivo</option>
-                                <option>Tarjeta</option>
-                                <option>Transferencia</option>
-
-                            </select>
-
-                        </div>
-
-                    </div>
-
-                    <hr />
-
-                    <h5>
-                        Productos
-                    </h5>
-
-                    <div className="row">
-
-                        <div className="col-md-2">
-
-                            <input
-                                className="form-control"
-                                placeholder="ID"
-
+                                value={detalle.idProducto || ""}
                                 onChange={(e) =>
-
-                                    cargarProducto(
+                                    seleccionarResultado(
                                         e.target.value
                                     )
-
                                 }
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
-                            />
-
-                        </div>
-
-                        <div className="col-md-4">
-
-<<<<<<< HEAD
-                            <label className="form-label fw-semibold">
-                                Producto
-                            </label>
-
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={detalle.nombreProducto}
-                                readOnly
-=======
-                            <input
-                                className="form-control"
-                                value={detalle.nombreProducto}
-                                readOnly
-                                onChange={(e)=>
-
-                                setDetalle({
-                                    ...detalle,
-                                    nombreProducto:e.target.value
-                                })
-
-                                }
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
-                            />
-
-                        </div>
-
-                        <div className="col-md-2">
-
-<<<<<<< HEAD
-                            <label className="form-label fw-semibold">
-                                Cantidad
-                            </label>
-
-                            <input
-                                type="number"
-                                min="1"
-                                className="form-control"
-                                value={detalle.cantidad}
-                                onChange={(e) =>
-                                    cambiarCantidad(e.target.value)
-=======
-                            <input
-                                type="number"
-                                className="form-control"
-                                placeholder="Cantidad"
-                                onChange={(e)=>
-
-                                setDetalle({
-                                    ...detalle,
-                                    cantidad:Number(e.target.value)
-                                })
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
-                                }
-                            />
-
-                        </div>
-
-                        <div className="col-md-2">
-
-<<<<<<< HEAD
-                            <label className="form-label fw-semibold">
-                                Precio
-                            </label>
-
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={
-                                    detalle.precioUnitario
-                                        ? `$${Number(
-                                            detalle.precioUnitario
-                                        ).toLocaleString("es-CO")}`
-                                        : "$0"
-                                }
-                                readOnly
-=======
-                            <input
-                                type="number"
-                                className="form-control"
-                                value={detalle.precioUnitario}
-                                readOnly
-                                onChange={(e)=>
-
-                                setDetalle({
-                                    ...detalle,
-                                    precioUnitario:Number(e.target.value)
-                                })
-
-                                }
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
-                            />
-
-                        </div>
-
-                        <div className="col-md-2">
-
-                            <button
-                                type="button"
-<<<<<<< HEAD
-                                className="btn btn-success w-100"
-                                onClick={agregarDetalle}
                             >
-                                <i className="bi bi-plus-lg me-1"></i>
-=======
-                                className="btn btn-success"
-                                onClick={agregarDetalle}
-                            >
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
-                                Agregar
-                            </button>
+                                <option value="">
+                                    Seleccione un producto...
+                                </option>
 
+                                {resultados.map((producto) => (
+                                    <option
+                                        key={producto.idProducto}
+                                        value={producto.idProducto}
+                                    >
+                                        {producto.nombreProducto}{" "}
+                                        ({producto.codigoSKU}) — $
+                                        {Number(
+                                            producto.precioUnitario ||
+                                            0
+                                        ).toLocaleString("es-CO")}{" "}
+                                        · Stock{" "}
+                                        {Number(producto.stock || 0)}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-
                     </div>
 
-<<<<<<< HEAD
                     {detalle.idProducto && (
-                        <div className="mt-2">
+                        <div className="row g-3 align-items-end mt-1">
+                            <div className="col-md-4">
+                                <div className="alert alert-light border mb-0 py-2">
+                                    <div className="fw-semibold">
+                                        {detalle.nombreProducto}
+                                    </div>
 
-                            <span className="badge bg-secondary">
-                                Stock disponible: {detalle.stock}
-                            </span>
+                                    <small className="text-muted">
+                                        Stock disponible:{" "}
+                                        {detalle.stock}
+                                    </small>
+                                </div>
+                            </div>
 
+                            <div className="col-md-2">
+                                <label className="form-label fw-semibold">
+                                    Cantidad
+                                </label>
+
+                                <input
+                                    type="number"
+                                    min="1"
+                                    className="form-control"
+                                    value={
+                                        detalle.cantidad
+                                    }
+                                    onChange={(e) =>
+                                        cambiarCantidad(
+                                            e.target.value
+                                        )
+                                    }
+                                />
+                            </div>
+
+                            <div className="col-md-3">
+                                <label className="form-label fw-semibold">
+                                    Precio
+                                </label>
+
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    value={
+                                        detalle.precioUnitario
+                                            ? `$${Number(
+                                                  detalle.precioUnitario
+                                              ).toLocaleString(
+                                                  "es-CO"
+                                              )}`
+                                            : "$0"
+                                    }
+                                    readOnly
+                                />
+                            </div>
+
+                            <div className="col-md-3">
+                                <button
+                                    type="button"
+                                    className="btn btn-success w-100"
+                                    onClick={
+                                        agregarDetalle
+                                    }
+                                >
+                                    <i className="bi bi-plus-lg me-1"></i>
+                                    Agregar
+                                </button>
+                            </div>
                         </div>
                     )}
 
                     {/* TABLA */}
-
                     <div className="table-responsive mt-4">
-
                         <table className="table table-hover align-middle">
-
                             <thead className="table-light">
-
                                 <tr>
                                     <th>Producto</th>
                                     <th className="text-center">
@@ -947,40 +673,42 @@ function FacturaForm({ recargar }) {
                                         Acción
                                     </th>
                                 </tr>
-
                             </thead>
 
                             <tbody>
-
-                                {factura.detalles.length === 0 ? (
-
+                                {factura.detalles.length ===
+                                0 ? (
                                     <tr>
-
                                         <td
                                             colSpan="5"
                                             className="text-center text-muted py-4"
                                         >
                                             <i className="bi bi-cart-x fs-3 d-block mb-2"></i>
-                                            No hay productos agregados.
+                                            No hay productos
+                                            agregados.
                                         </td>
-
                                     </tr>
-
                                 ) : (
-
                                     factura.detalles.map(
-                                        (d, index) => (
-
-                                            <tr key={`${d.idProducto}-${index}`}>
-
+                                        (
+                                            d,
+                                            index
+                                        ) => (
+                                            <tr
+                                                key={`${d.idProducto}-${index}`}
+                                            >
                                                 <td>
                                                     <span className="fw-semibold">
-                                                        {d.nombreProducto}
+                                                        {
+                                                            d.nombreProducto
+                                                        }
                                                     </span>
                                                 </td>
 
                                                 <td className="text-center">
-                                                    {d.cantidad}
+                                                    {
+                                                        d.cantidad
+                                                    }
                                                 </td>
 
                                                 <td className="text-end">
@@ -1002,7 +730,6 @@ function FacturaForm({ recargar }) {
                                                 </td>
 
                                                 <td className="text-center">
-
                                                     <button
                                                         type="button"
                                                         className="btn btn-sm btn-outline-danger"
@@ -1015,30 +742,20 @@ function FacturaForm({ recargar }) {
                                                     >
                                                         <i className="bi bi-trash"></i>
                                                     </button>
-
                                                 </td>
-
                                             </tr>
-
                                         )
                                     )
-
                                 )}
-
                             </tbody>
-
                         </table>
-
                     </div>
 
                     <hr />
 
                     {/* OBSERVACIONES Y TOTALES */}
-
                     <div className="row g-4">
-
                         <div className="col-md-7">
-
                             <label className="form-label fw-semibold">
                                 Observaciones
                             </label>
@@ -1047,26 +764,25 @@ function FacturaForm({ recargar }) {
                                 className="form-control"
                                 rows="4"
                                 placeholder="Observaciones de la venta..."
-                                value={factura.observaciones}
+                                value={
+                                    factura.observaciones
+                                }
                                 onChange={(e) =>
-                                    setFactura((prev) => ({
-                                        ...prev,
-                                        observaciones:
-                                            e.target.value
-                                    }))
+                                    setFactura(
+                                        (prev) => ({
+                                            ...prev,
+                                            observaciones:
+                                                e.target.value
+                                        })
+                                    )
                                 }
                             ></textarea>
-
                         </div>
 
                         <div className="col-md-5">
-
                             <div className="card bg-light border-0">
-
                                 <div className="card-body">
-
                                     <div className="d-flex justify-content-between mb-2">
-
                                         <span>
                                             Subtotal
                                         </span>
@@ -1077,11 +793,9 @@ function FacturaForm({ recargar }) {
                                                 "es-CO"
                                             )}
                                         </strong>
-
                                     </div>
 
                                     <div className="d-flex justify-content-between align-items-center mb-3">
-
                                         <label className="mb-0">
                                             Descuento
                                         </label>
@@ -1091,28 +805,33 @@ function FacturaForm({ recargar }) {
                                             min="0"
                                             className="form-control text-end"
                                             style={{
-                                                maxWidth: "150px"
+                                                maxWidth:
+                                                    "150px"
                                             }}
                                             value={
                                                 factura.descuento
                                             }
-                                            onChange={(e) =>
+                                            onChange={(
+                                                e
+                                            ) =>
                                                 setFactura(
-                                                    (prev) => ({
+                                                    (
+                                                        prev
+                                                    ) => ({
                                                         ...prev,
                                                         descuento:
-                                                            e.target.value
+                                                            e
+                                                                .target
+                                                                .value
                                                     })
                                                 )
                                             }
                                         />
-
                                     </div>
 
                                     <hr />
 
                                     <div className="d-flex justify-content-between align-items-center">
-
                                         <span className="fw-bold fs-5">
                                             TOTAL
                                         </span>
@@ -1123,100 +842,22 @@ function FacturaForm({ recargar }) {
                                                 "es-CO"
                                             )}
                                         </span>
-
                                     </div>
-
                                 </div>
-
                             </div>
-=======
-                    <table className="table mt-4">
-
-                        <thead>
-
-                            <tr>
-
-                                <th>ID</th>
-                                <th>Producto</th>
-                                <th>Cantidad</th>
-                                <th>Precio</th>
-                                <th>Subtotal</th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                            {
-
-                            factura.detalles.map(
-
-                                (d,index)=>(
-
-                                <tr key={index}>
-
-                                    <td>{d.idProducto}</td>
-                                    <td>{d.nombreProducto}</td>
-                                    <td>{d.cantidad}</td>
-                                    <td>{d.precioUnitario}</td>
-                                    <td>{d.subtotal}</td>
-
-                                </tr>
-
-                            ))
-
-                            }
-
-                        </tbody>
-
-                    </table>
-
-                    <div className="row">
-
-                        <div className="col-md-3">
-
-                            <input
-                                type="number"
-                                className="form-control"
-                                placeholder="Descuento"
-
-                                onChange={(e)=>
-
-                                setFactura({
-                                    ...factura,
-                                    descuento:e.target.value
-                                })
-
-                                }
-                            />
-
                         </div>
-
-                        <div className="col-md-3">
-
-                            <input
-                                className="form-control"
-                                readOnly
-                                value={calcularTotal()}
-                            />
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
-
-                        </div>
-
                     </div>
 
-<<<<<<< HEAD
                     {/* BOTONES */}
-
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-
                         {cancelar && (
                             <button
                                 type="button"
                                 className="btn btn-secondary"
                                 onClick={cancelar}
-                                disabled={guardando}
+                                disabled={
+                                    guardando
+                                }
                             >
                                 Cancelar
                             </button>
@@ -1225,14 +866,13 @@ function FacturaForm({ recargar }) {
                         <button
                             type="submit"
                             className="btn btn-primary fw-bold"
-                            disabled={guardando}
+                            disabled={
+                                guardando
+                            }
                         >
-
                             {guardando ? (
                                 <>
-                                    <span
-                                        className="spinner-border spinner-border-sm me-2"
-                                    ></span>
+                                    <span className="spinner-border spinner-border-sm me-2"></span>
                                     Guardando...
                                 </>
                             ) : (
@@ -1241,31 +881,12 @@ function FacturaForm({ recargar }) {
                                     Guardar Factura
                                 </>
                             )}
-
                         </button>
-
                     </div>
-=======
-                    <button
-                        className="btn btn-primary mt-3"
-                        type="submit"
-                    >
-                        Guardar Factura
-                    </button>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
-
                 </form>
-
             </div>
-
         </div>
-<<<<<<< HEAD
     );
-=======
-
-    );
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 }
 
 export default FacturaForm;

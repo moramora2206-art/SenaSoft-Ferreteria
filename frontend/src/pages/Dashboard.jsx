@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { obtenerMetricasDashboard } from "../services/dashboardService";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Dashboard() {
+    const { user } = useAuth();
     const [metricas, setMetricas] = useState(null);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState("");
@@ -14,7 +16,7 @@ function Dashboard() {
             if (res.success) {
                 setMetricas(res.data);
             } else {
-                setError("Error al cargar métricas del servidor.");
+                setError(res.message || "Error al cargar métricas del servidor.");
             }
         } catch (err) {
             console.error(err);
@@ -70,13 +72,53 @@ function Dashboard() {
 
             {/* Tarjetas de Métricas Principales */}
             <div className="row g-3 mb-4">
-                {/* Total Productos */}
-                <div className="col-12 col-sm-6 col-xl-3">
+                {/* Ventas del Período */}
+                <div className="col-6 col-md-4 col-xl-2">
+                    <div className="card shadow-sm border-0 border-start border-4 border-success h-100">
+                        <div className="card-body">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div className="text-uppercase text-muted fw-bold small">Ventas</div>
+                                    <h2 className="fw-bold text-dark my-1">${Number(metricas?.totalVentas || 0).toLocaleString("es-CO")}</h2>
+                                    <div className="small text-success">
+                                        <i className="bi bi-cash-stack me-1"></i>Período
+                                    </div>
+                                </div>
+                                <div className="bg-success-subtle p-3 rounded-circle text-success">
+                                    <i className="bi bi-cash-stack fs-2"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Facturas */}
+                <div className="col-6 col-md-4 col-xl-2">
                     <div className="card shadow-sm border-0 border-start border-4 border-primary h-100">
                         <div className="card-body">
                             <div className="d-flex align-items-center justify-content-between">
                                 <div>
-                                    <div className="text-uppercase text-muted fw-bold small">Total Productos</div>
+                                    <div className="text-uppercase text-muted fw-bold small">Facturas</div>
+                                    <h2 className="fw-bold text-dark my-1">{metricas?.totalFacturas || 0}</h2>
+                                    <div className="small text-primary">
+                                        <i className="bi bi-receipt me-1"></i>Activas
+                                    </div>
+                                </div>
+                                <div className="bg-primary-subtle p-3 rounded-circle text-primary">
+                                    <i className="bi bi-receipt fs-2"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Total Productos */}
+                <div className="col-6 col-md-4 col-xl-2">
+                    <div className="card shadow-sm border-0 border-start border-4 border-primary h-100">
+                        <div className="card-body">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div className="text-uppercase text-muted fw-bold small">Productos</div>
                                     <h2 className="fw-bold text-dark my-1">{metricas?.totalProductos || 0}</h2>
                                     <div className="small text-primary">
                                         <i className="bi bi-boxes me-1"></i>En catálogo
@@ -90,60 +132,61 @@ function Dashboard() {
                     </div>
                 </div>
 
-                {/* Stock Bajo */}
-                <div className="col-12 col-sm-6 col-xl-3">
+                {/* Clientes */}
+                <div className="col-6 col-md-4 col-xl-2">
+                    <div className="card shadow-sm border-0 border-start border-4 border-info h-100">
+                        <div className="card-body">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div className="text-uppercase text-muted fw-bold small">Clientes</div>
+                                    <h2 className="fw-bold text-dark my-1">{metricas?.totalClientes || 0}</h2>
+                                    <div className="small text-info">
+                                        <i className="bi bi-people me-1"></i>Registrados
+                                    </div>
+                                </div>
+                                <div className="bg-info-subtle p-3 rounded-circle text-info">
+                                    <i className="bi bi-people fs-2"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Proveedores */}
+                <div className="col-6 col-md-4 col-xl-2">
                     <div className="card shadow-sm border-0 border-start border-4 border-warning h-100">
                         <div className="card-body">
                             <div className="d-flex align-items-center justify-content-between">
                                 <div>
-                                    <div className="text-uppercase text-muted fw-bold small">Stock Bajo (&lt; 10)</div>
-                                    <h2 className="fw-bold text-dark my-1">{metricas?.stockBajo || 0}</h2>
+                                    <div className="text-uppercase text-muted fw-bold small">Proveedores</div>
+                                    <h2 className="fw-bold text-dark my-1">{metricas?.totalProveedores || 0}</h2>
                                     <div className="small text-warning fw-semibold">
-                                        <i className="bi bi-exclamation-triangle me-1"></i>Requiere pedido
+                                        <i className="bi bi-truck me-1"></i>Activos
+                                    </div>
+                                </div>
+                                <div className="bg-warning-subtle p-3 rounded-circle text-warning">
+                                    <i className="bi bi-truck fs-2"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Stock Bajo */}
+                <div className="col-6 col-md-4 col-xl-2">
+                    <div className="card shadow-sm border-0 border-start border-4 border-warning h-100">
+                        <div className="card-body">
+                            <div className="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <div className="text-uppercase text-muted fw-bold small">Stock Bajo</div>
+                                    <h2 className="fw-bold text-dark my-1">{metricas?.stockBajo || 0}</h2>
+                                    <div className="small text-danger fw-semibold">
+                                        <i className="bi bi-exclamation-triangle me-1"></i>
+                                        {metricas?.productosAgotados || 0} agotados
                                     </div>
                                 </div>
                                 <div className="bg-warning-subtle p-3 rounded-circle text-warning">
                                     <i className="bi bi-exclamation-octagon fs-2"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Productos Agotados */}
-                <div className="col-12 col-sm-6 col-xl-3">
-                    <div className="card shadow-sm border-0 border-start border-4 border-danger h-100">
-                        <div className="card-body">
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <div className="text-uppercase text-muted fw-bold small">Productos Agotados</div>
-                                    <h2 className="fw-bold text-dark my-1">{metricas?.productosAgotados || 0}</h2>
-                                    <div className="small text-danger fw-semibold">
-                                        <i className="bi bi-x-circle me-1"></i>Sin inventario
-                                    </div>
-                                </div>
-                                <div className="bg-danger-subtle p-3 rounded-circle text-danger">
-                                    <i className="bi bi-slash-circle fs-2"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Ventas Registradas */}
-                <div className="col-12 col-sm-6 col-xl-3">
-                    <div className="card shadow-sm border-0 border-start border-4 border-success h-100">
-                        <div className="card-body">
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <div className="text-uppercase text-muted fw-bold small">Ventas Totales</div>
-                                    <h2 className="fw-bold text-dark my-1">${Number(metricas?.totalVentas || 0).toLocaleString("es-CO")}</h2>
-                                    <div className="small text-success">
-                                        <i className="bi bi-receipt me-1"></i>{metricas?.totalFacturas || 0} Facturas
-                                    </div>
-                                </div>
-                                <div className="bg-success-subtle p-3 rounded-circle text-success">
-                                    <i className="bi bi-cash-stack fs-2"></i>
                                 </div>
                             </div>
                         </div>
@@ -170,7 +213,7 @@ function Dashboard() {
                         <div className="col-6 col-md-4 col-lg-2">
                             <Link to="/facturas" className="btn btn-outline-success w-100 py-3 d-flex flex-column align-items-center gap-2 shadow-sm">
                                 <i className="bi bi-cart-check fs-3"></i>
-                                <span className="small fw-semibold">Nueva Venta</span>
+                                <span className="small fw-semibold">Nueva Factura</span>
                             </Link>
                         </div>
                         <div className="col-6 col-md-4 col-lg-2">
@@ -186,17 +229,19 @@ function Dashboard() {
                             </Link>
                         </div>
                         <div className="col-6 col-md-4 col-lg-2">
-                            <Link to="/usuarios" className="btn btn-outline-secondary w-100 py-3 d-flex flex-column align-items-center gap-2 shadow-sm">
-                                <i className="bi bi-person-badge fs-3"></i>
-                                <span className="small fw-semibold">Usuarios</span>
+                            <Link to="/ventas" className="btn btn-outline-dark w-100 py-3 d-flex flex-column align-items-center gap-2 shadow-sm">
+                                <i className="bi bi-graph-up-arrow fs-3"></i>
+                                <span className="small fw-semibold">Análisis de Ventas</span>
                             </Link>
                         </div>
-                        <div className="col-6 col-md-4 col-lg-2">
-                            <Link to="/facturas" className="btn btn-outline-dark w-100 py-3 d-flex flex-column align-items-center gap-2 shadow-sm">
-                                <i className="bi bi-receipt-cutoff fs-3"></i>
-                                <span className="small fw-semibold">Facturas</span>
-                            </Link>
-                        </div>
+                        {user?.rol === "Administrador" && (
+                            <div className="col-6 col-md-4 col-lg-2">
+                                <Link to="/usuarios" className="btn btn-outline-secondary w-100 py-3 d-flex flex-column align-items-center gap-2 shadow-sm">
+                                    <i className="bi bi-person-badge fs-3"></i>
+                                    <span className="small fw-semibold">Usuarios</span>
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

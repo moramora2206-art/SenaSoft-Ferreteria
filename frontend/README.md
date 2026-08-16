@@ -1,16 +1,29 @@
-# React + Vite
+# Frontend — React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz de usuario de SenaSoft (React + Vite + Bootstrap). Se comunica con la
+API PHP (`backend/`) mediante axios.
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```
+npm run dev       Servidor de desarrollo
+npm run build     Compilación de producción
+npm run lint      Análisis estático (ESLint)
+npm run preview   Vista previa del build
+```
 
-## React Compiler
+## Variables de entorno
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `VITE_API_URL`: URL base de la API (por defecto `http://<host>:8000/api`).
 
-## Expanding the ESLint configuration
+## Estructura
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+src/
+  components/      Componentes reutilizables (Sidebar, Navbar, ...)
+  context/         Contexto de autenticación (AuthContext)
+  pages/           Vistas (Login, Dashboard, Productos, Ventas, ...)
+  services/        Clientes de la API (axios)
+  App.jsx          Enrutamiento (react-router)
+  main.jsx         Punto de entrada
+```

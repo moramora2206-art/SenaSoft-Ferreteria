@@ -4,7 +4,20 @@ import {
     obtenerResumenVentas
 } from "../services/ventasService";
 
+import { useNavigate } from "react-router-dom";
+
 function Ventas() {
+
+    const navigate = useNavigate();
+
+    const verDetalleFactura = (id) => {
+        navigate(
+            "/facturas",
+            {
+                state: { verFacturaId: id }
+            }
+        );
+    };
 
     const hoy =
         new Date()
@@ -33,12 +46,16 @@ function Ventas() {
     const [cargando, setCargando] =
         useState(true);
 
+    const [errorMsg, setErrorMsg] =
+        useState(null);
+
 
     const cargar = async () => {
 
         try {
 
             setCargando(true);
+            setErrorMsg(null);
 
             const res =
                 await obtenerResumenVentas(
@@ -48,6 +65,11 @@ function Ventas() {
 
             if (res.success) {
                 setDatos(res.data);
+            } else {
+                setErrorMsg(
+                    res.message ||
+                    "No se pudo obtener el resumen de ventas."
+                );
             }
 
         } catch (error) {
@@ -55,6 +77,10 @@ function Ventas() {
             console.error(
                 "Error cargando análisis:",
                 error
+            );
+
+            setErrorMsg(
+                "No fue posible conectar con el servidor."
             );
 
         } finally {
@@ -192,6 +218,15 @@ function Ventas() {
                 </div>
 
             </div>
+
+
+            {/* ERROR */}
+            {errorMsg && (
+                <div className="alert alert-warning shadow-sm" role="alert">
+                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                    {errorMsg}
+                </div>
+            )}
 
 
             {/* KPIs */}
@@ -538,6 +573,161 @@ function Ventas() {
                                 </table>
 
                             </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                {/* FACTURAS DEL PERÍODO */}
+
+                <div className="col-12">
+
+                    <div className="card shadow-sm border-0">
+
+                        <div className="card-header bg-white">
+
+                            <h5 className="fw-bold mb-0">
+
+                                <i className="bi bi-receipt me-2 text-warning" />
+
+                                Facturas del período
+
+                            </h5>
+
+                        </div>
+
+
+                        <div className="card-body p-0">
+
+                            {datos?.ventasListado?.length === 0 ? (
+
+                                <p className="text-muted text-center py-4 mb-0">
+                                    No hay facturas en este período.
+                                </p>
+
+                            ) : (
+
+                                <div className="table-responsive">
+
+                                    <table className="table table-hover align-middle mb-0">
+
+                                        <thead className="table-light">
+
+                                            <tr>
+
+                                                <th>Fecha</th>
+
+                                                <th>Factura</th>
+
+                                                <th>Cliente</th>
+
+                                                <th className="text-end">
+                                                    Total
+                                                </th>
+
+                                                <th className="text-center">
+                                                    Estado
+                                                </th>
+
+                                                <th className="text-center">
+                                                    Acción
+                                                </th>
+
+                                            </tr>
+
+                                        </thead>
+
+
+                                        <tbody>
+
+                                            {datos?.ventasListado?.map(
+                                                venta => (
+
+                                                    <tr
+                                                        key={
+                                                            venta.idFactura
+                                                        }
+                                                    >
+
+                                                        <td>
+                                                            {
+                                                                venta.fechaVenta
+                                                            }
+                                                        </td>
+
+                                                        <td>
+                                                            <span className="fw-bold">
+                                                                #FAC-
+                                                                {
+                                                                    venta.idFactura
+                                                                }
+                                                            </span>
+                                                        </td>
+
+                                                        <td>
+                                                            {
+                                                                venta.nombreCliente ||
+                                                                "Cliente no registrado"
+                                                            }
+                                                        </td>
+
+                                                        <td className="text-end fw-bold text-success">
+                                                            {dinero(
+                                                                venta.total
+                                                            )}
+                                                        </td>
+
+                                                        <td className="text-center">
+
+                                                            {venta.estado ===
+                                                            "ANULADA" ? (
+
+                                                                <span className="badge bg-danger">
+                                                                    Anulada
+                                                                </span>
+
+                                                            ) : (
+
+                                                                <span className="badge bg-success">
+                                                                    Activa
+                                                                </span>
+
+                                                            )}
+
+                                                        </td>
+
+                                                        <td className="text-center">
+
+                                                            <button
+                                                                className="btn btn-sm btn-outline-primary"
+                                                                title="Ver factura"
+                                                                onClick={() =>
+                                                                    verDetalleFactura(
+                                                                        venta.idFactura
+                                                                    )
+                                                                }
+                                                            >
+                                                                <i className="bi bi-eye me-1" />
+                                                                Ver
+                                                            </button>
+
+                                                        </td>
+
+                                                    </tr>
+
+                                                )
+                                            )}
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+
+                            )}
 
                         </div>
 

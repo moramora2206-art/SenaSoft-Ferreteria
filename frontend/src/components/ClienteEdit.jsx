@@ -18,10 +18,31 @@ function ClienteEdit({ clienteSeleccionado, recargar, cancelar }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const datos = {
+            ...cliente,
+            nombre: (cliente.nombre || "").trim(),
+            apellido: (cliente.apellido || "").trim(),
+            cedula: (cliente.cedula || "").trim(),
+            nCelular: (cliente.nCelular || "").trim(),
+            email: (cliente.email || "").trim(),
+            direccion: (cliente.direccion || "").trim()
+        };
+
+        if (datos.nombre === "" || datos.cedula === "") {
+            alert("Nombre y Cédula/NIT son requeridos.");
+            return;
+        }
+
+        if (datos.email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.email)) {
+            alert("El correo electrónico no es válido.");
+            return;
+        }
+
         setGuardando(true);
 
         try {
-            const res = await actualizarCliente(cliente);
+            const res = await actualizarCliente(datos);
             if (res.success) {
                 alert("Cliente actualizado correctamente.");
                 recargar();

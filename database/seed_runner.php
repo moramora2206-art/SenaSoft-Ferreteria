@@ -2,7 +2,6 @@
 // Script de Inserción Segura de Datos de Prueba para Ferretería
 // Garantiza la preservación de datos existentes y usa codificación UTF-8 pura.
 
-<<<<<<< HEAD
 $envFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . '.env';
 $env = [];
 
@@ -23,12 +22,6 @@ $host = getenv('DB_HOST') ?: ($env['DB_HOST'] ?? 'localhost');
 $user = getenv('DB_USER') ?: ($env['DB_USER'] ?? 'root');
 $pass = getenv('DB_PASS') ?: ($env['DB_PASS'] ?? '');
 $db   = getenv('DB_NAME') ?: ($env['DB_NAME'] ?? 'softwarefacturacion');
-=======
-$host = "localhost";
-$user = "root";
-$pass = "Car*2011";
-$db   = "softwarefacturacion";
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
 $conn = new mysqli($host, $user, $pass, $db);
 

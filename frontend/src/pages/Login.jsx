@@ -1,28 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-<<<<<<< HEAD
 import { useLocation, useNavigate } from "react-router-dom";
 
 function Login() {
     const [usuario, setUsuario] = useState("");
     const [password, setPassword] = useState("");
-=======
-import { useNavigate } from "react-router-dom";
-
-function Login() {
-    const [usuario, setUsuario] = useState("root");
-    const [password, setPassword] = useState("Car*2011");
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
     const [error, setError] = useState("");
+    const [aviso, setAviso] = useState("");
     const [cargando, setCargando] = useState(false);
 
     const { login } = useAuth();
     const navigate = useNavigate();
-<<<<<<< HEAD
     const location = useLocation();
     const destino = location.state?.from?.pathname || "/";
-=======
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
+
+    useEffect(() => {
+        if (sessionStorage.getItem("ferreteria_sesion_expirada")) {
+            setAviso(
+                "Tu sesión ha expirado por inactividad. Inicia sesión nuevamente."
+            );
+            sessionStorage.removeItem("ferreteria_sesion_expirada");
+        }
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -32,7 +31,6 @@ function Login() {
         try {
             const res = await login(usuario, password);
             if (res.success) {
-<<<<<<< HEAD
                 navigate(destino, { replace: true });
             } else {
                 setError(res.message || "No fue posible iniciar sesión.");
@@ -40,15 +38,6 @@ function Login() {
         } catch (err) {
             console.error(err);
             setError("Ocurrió un error inesperado al iniciar sesión.");
-=======
-                navigate("/");
-            } else {
-                setError(res.message || "Credenciales incorrectas.");
-            }
-        } catch (err) {
-            console.error(err);
-            setError("No fue posible conectar con el servidor PHP.");
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         } finally {
             setCargando(false);
         }
@@ -68,6 +57,13 @@ function Login() {
                         <h3 className="fw-bold mb-1" style={{ color: "#0f172a" }}>Ferretería El Constructor</h3>
                         <p className="text-muted small">Sistema de Gestión de Inventario y Facturación</p>
                     </div>
+
+                    {aviso && (
+                        <div className="alert alert-info py-2 small d-flex align-items-center" role="alert">
+                            <i className="bi bi-clock-history me-2"></i>
+                            <div>{aviso}</div>
+                        </div>
+                    )}
 
                     {error && (
                         <div className="alert alert-danger py-2 small d-flex align-items-center" role="alert">

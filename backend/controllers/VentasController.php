@@ -31,6 +31,7 @@ class VentasController
 
             return [
                 "success" => false,
+                "errorCode" => "INVALID_FECHAS",
                 "message" =>
                     "Formato de fecha inválido."
             ];
@@ -41,21 +42,35 @@ class VentasController
 
             return [
                 "success" => false,
+                "errorCode" => "INVALID_FECHAS",
                 "message" =>
                     "La fecha inicial no puede ser posterior a la final."
             ];
         }
 
+        try {
 
-        return [
-            "success" => true,
-            "message" =>
-                "Análisis de ventas.",
-            "data" =>
-                $this->model->resumen(
-                    $inicio,
-                    $fin
-                )
-        ];
+            return [
+                "success" => true,
+                "message" =>
+                    "Análisis de ventas.",
+                "data" =>
+                    $this->model->resumen(
+                        $inicio,
+                        $fin
+                    )
+            ];
+
+        } catch (Exception $e) {
+
+            error_log('Error en resumen de ventas: ' . $e->getMessage());
+
+            return [
+                "success" => false,
+                "errorCode" => "DATABASE_ERROR",
+                "message" =>
+                    "No fue posible obtener el resumen de ventas. Inténtalo nuevamente."
+            ];
+        }
     }
 }

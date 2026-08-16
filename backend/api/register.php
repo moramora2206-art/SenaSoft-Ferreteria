@@ -1,6 +1,5 @@
 <?php
 
-<<<<<<< HEAD
 require_once(__DIR__ . "/../config/database.php");
 require_once(__DIR__ . "/../controllers/AuthController.php");
 
@@ -21,24 +20,14 @@ if (json_last_error() !== JSON_ERROR_NONE || !$datos) {
 $auth = new AuthController($conn);
 $res = $auth->registrar($datos);
 
+$code = $res["success"]
+    ? 201
+    : (isset($res["errorCode"]) ? codigoHttpParaError($res["errorCode"]) : 400);
+
 jsonResponse(
     $res["success"],
     $res["mensaje"],
     null,
-    $res["success"] ? 201 : 400,
+    $code,
     isset($res["errorCode"]) ? ["errorCode" => $res["errorCode"]] : []
 );
-=======
-header("Content-Type: application/json");
-
-require_once("../config/database.php");
-require_once("../controllers/AuthController.php");
-
-$datos = json_decode(file_get_contents("php://input"));
-
-$auth = new AuthController($conn);
-
-echo json_encode(
-    $auth->registrar($datos)
-);
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566

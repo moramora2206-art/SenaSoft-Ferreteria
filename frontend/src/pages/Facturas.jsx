@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import FacturaForm from "../components/FacturaForm";
 import FacturaList from "../components/FacturaList";
 import FacturaEdit from "../components/FacturaEdit";
 
+import { useLocation, useNavigate } from "react-router-dom";
+
 function Facturas() {
-<<<<<<< HEAD
+
+    const location = useLocation();
+
+    const navigate = useNavigate();
 
     const [modo, setModo] =
         useState("lista");
@@ -15,6 +20,29 @@ function Facturas() {
 
     const [actualizar, setActualizar] =
         useState(false);
+
+
+    useEffect(() => {
+
+        const id =
+            location.state?.verFacturaId;
+
+        if (id) {
+
+            setFacturaEditar(id);
+
+            setModo("detalle");
+
+            // Limpia el estado de la URL para que
+            // el detalle no se vuelva a abrir al refrescar.
+            navigate(
+                location.pathname,
+                { replace: true }
+            );
+
+        }
+
+    }, [location.pathname, location.state?.verFacturaId, navigate]);
 
 
     const recargar = () => {
@@ -104,43 +132,6 @@ function Facturas() {
 
             )}
 
-=======
-    const [facturaEditar, setFacturaEditar] = useState(null);
-    const [actualizar, setActualizar] = useState(false);
-
-    const recargar = () => {
-        setActualizar((v) => !v);
-        setFacturaEditar(null);
-    };
-
-    const cerrarDetalle = () => setFacturaEditar(null);
-
-    return (
-        <div className="container-fluid">
-            <h1 className="mb-4">
-                <i className="bi bi-receipt me-2 text-primary"></i>
-                Gestión de Facturas
-            </h1>
-
-            <FacturaForm recargar={recargar} />
-
-            {facturaEditar && (
-                <FacturaEdit
-                    facturaId={
-                        typeof facturaEditar === "object"
-                            ? facturaEditar.idFactura
-                            : facturaEditar
-                    }
-                    recargar={recargar}
-                    cerrar={cerrarDetalle}
-                />
-            )}
-
-            <FacturaList
-                editar={setFacturaEditar}
-                actualizar={actualizar}
-            />
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         </div>
     );
 }

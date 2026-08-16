@@ -23,10 +23,20 @@ class ProveedorController
 
     public function buscarPorId($id)
     {
+        $id = intval($id);
+        if ($id <= 0) {
+            return [
+                "success" => false,
+                "errorCode" => "INVALID_ID",
+                "message" => "ID de proveedor inválido."
+            ];
+        }
+
         $proveedor = $this->model->buscarPorId($id);
         if (!$proveedor) {
             return [
                 "success" => false,
+                "errorCode" => "NOT_FOUND",
                 "message" => "Proveedor no encontrado."
             ];
         }
@@ -38,31 +48,61 @@ class ProveedorController
 
     public function guardar($datos)
     {
-        if (empty($datos->nombreProveedor) || empty($datos->nit)) {
+        if (!is_object($datos)) {
             return [
                 "success" => false,
+                "errorCode" => "VALIDATION_ERROR",
+                "message" => "Datos inválidos."
+            ];
+        }
+
+        $nombreProveedor = isset($datos->nombreProveedor) ? trim($datos->nombreProveedor) : "";
+        $nit = isset($datos->nit) ? intval($datos->nit) : 0;
+        $nombreContacto = isset($datos->nombreContacto) ? trim($datos->nombreContacto) : "";
+        $nCelular = isset($datos->nCelular) ? trim($datos->nCelular) : "";
+        $email = isset($datos->email) ? strtolower(trim($datos->email)) : "";
+
+        if ($nombreProveedor === "" || $nit <= 0) {
+            return [
+                "success" => false,
+                "errorCode" => "VALIDATION_ERROR",
                 "message" => "Nombre del proveedor y NIT son requeridos."
             ];
         }
 
-        $nombreProveedor = trim($datos->nombreProveedor);
-        $nit = intval($datos->nit);
-        $nombreContacto = isset($datos->nombreContacto) ? trim($datos->nombreContacto) : "";
-        $nCelular = isset($datos->nCelular) ? trim($datos->nCelular) : "";
-        $email = isset($datos->email) ? trim($datos->email) : "";
+        if ($email !== "" && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return [
+                "success" => false,
+                "errorCode" => "INVALID_EMAIL",
+                "message" => "El correo electrónico no es válido."
+            ];
+        }
 
-        $ok = $this->model->crear($nombreProveedor, $nit, $nombreContacto, $nCelular, $email);
+        if ($this->model->buscarPorNit($nit)) {
+            return [
+                "success" => false,
+                "errorCode" => "DUPLICATE_NIT",
+                "message" => "El NIT ya está registrado."
+            ];
+        }
 
-        if ($ok) {
+        $resultado = $this->model->crear($nombreProveedor, $nit, $nombreContacto, $nCelular, $email);
+
+        if ($resultado === true) {
             return [
                 "success" => true,
                 "message" => "Proveedor registrado con éxito."
             ];
         }
 
+        if (is_string($resultado)) {
+            return $this->respuestaPorErrorModelo($resultado, "registrar el proveedor");
+        }
+
         return [
             "success" => false,
-            "message" => "No se pudo registrar el proveedor."
+            "errorCode" => "DATABASE_ERROR",
+            "message" => "No fue posible registrar el proveedor. Inténtalo nuevamente."
         ];
     }
 
@@ -72,28 +112,59 @@ class ProveedorController
         if ($id <= 0) {
             return [
                 "success" => false,
+                "errorCode" => "INVALID_ID",
                 "message" => "ID de proveedor inválido."
             ];
         }
 
-        $nombreProveedor = trim($datos->nombreProveedor);
-        $nit = intval($datos->nit);
+        $nombreProveedor = isset($datos->nombreProveedor) ? trim($datos->nombreProveedor) : "";
+        $nit = isset($datos->nit) ? intval($datos->nit) : 0;
         $nombreContacto = isset($datos->nombreContacto) ? trim($datos->nombreContacto) : "";
         $nCelular = isset($datos->nCelular) ? trim($datos->nCelular) : "";
-        $email = isset($datos->email) ? trim($datos->email) : "";
+        $email = isset($datos->email) ? strtolower(trim($datos->email)) : "";
 
-        $ok = $this->model->actualizar($id, $nombreProveedor, $nit, $nombreContacto, $nCelular, $email);
+        if ($nombreProveedor === "" || $nit <= 0) {
+            return [
+                "success" => false,
+                "errorCode" => "VALIDATION_ERROR",
+                "message" => "Nombre del proveedor y NIT son requeridos."
+            ];
+        }
 
-        if ($ok) {
+        if ($email !== "" && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return [
+                "success" => false,
+                "errorCode" => "INVALID_EMAIL",
+                "message" => "El correo electrónico no es válido."
+            ];
+        }
+
+        $existente = $this->model->buscarPorNit($nit);
+        if ($existente && intval($existente['idProveedor']) !== $id) {
+            return [
+                "success" => false,
+                "errorCode" => "DUPLICATE_NIT",
+                "message" => "El NIT ya está registrado."
+            ];
+        }
+
+        $resultado = $this->model->actualizar($id, $nombreProveedor, $nit, $nombreContacto, $nCelular, $email);
+
+        if ($resultado === true) {
             return [
                 "success" => true,
                 "message" => "Proveedor actualizado con éxito."
             ];
         }
 
+        if (is_string($resultado)) {
+            return $this->respuestaPorErrorModelo($resultado, "actualizar el proveedor");
+        }
+
         return [
             "success" => false,
-            "message" => "No se pudo actualizar el proveedor."
+            "errorCode" => "DATABASE_ERROR",
+            "message" => "No fue posible actualizar el proveedor. Inténtalo nuevamente."
         ];
     }
 
@@ -103,21 +174,53 @@ class ProveedorController
         if ($id <= 0) {
             return [
                 "success" => false,
+                "errorCode" => "INVALID_ID",
                 "message" => "ID inválido."
             ];
         }
 
-        $ok = $this->model->eliminar($id);
-        if ($ok) {
+        $resultado = $this->model->eliminar($id);
+
+        if ($resultado === true) {
             return [
                 "success" => true,
                 "message" => "Proveedor eliminado correctamente."
             ];
         }
 
+        if (is_string($resultado)) {
+            return $this->respuestaPorErrorModelo($resultado, "eliminar el proveedor");
+        }
+
         return [
             "success" => false,
-            "message" => "No se pudo eliminar el proveedor. Compruebe si tiene productos asociados."
+            "errorCode" => "DATABASE_ERROR",
+            "message" => "No fue posible eliminar el proveedor. Inténtalo nuevamente."
+        ];
+    }
+
+    private function respuestaPorErrorModelo($errorCode, $accion)
+    {
+        if ($errorCode === 'DUPLICATE_NIT') {
+            return [
+                "success" => false,
+                "errorCode" => $errorCode,
+                "message" => "El NIT ya está registrado."
+            ];
+        }
+
+        if ($errorCode === 'FOREIGN_KEY_CONSTRAINT') {
+            return [
+                "success" => false,
+                "errorCode" => $errorCode,
+                "message" => "No se puede " . $accion . " porque tiene productos u otros registros asociados."
+            ];
+        }
+
+        return [
+            "success" => false,
+            "errorCode" => "DATABASE_ERROR",
+            "message" => "No fue posible " . $accion . ". Inténtalo nuevamente."
         ];
     }
 }

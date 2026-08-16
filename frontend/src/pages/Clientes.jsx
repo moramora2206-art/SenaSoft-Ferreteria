@@ -5,7 +5,6 @@ import ClienteList from "../components/ClienteList";
 import ClienteEdit from "../components/ClienteEdit";
 
 function Clientes() {
-<<<<<<< HEAD
     const [modo, setModo] = useState("lista");
     const [clienteEditar, setClienteEditar] = useState(null);
     const [actualizar, setActualizar] = useState(false);
@@ -62,44 +61,6 @@ function Clientes() {
 
         </div>
     );
-=======
-
-    const [clienteEditar, setClienteEditar] = useState(null);
-
-    const [actualizar, setActualizar] = useState(false);
-
-    const recargar = () => {
-        setActualizar(!actualizar);
-        setClienteEditar(null);
-    };
-
-    return (
-
-        <div className="container-fluid">
-
-            <h1 className="mb-4">
-                Gestión de Clientes
-            </h1>
-
-            <ClienteForm
-                recargar={recargar}
-            />
-
-            <ClienteEdit
-                cliente={clienteEditar}
-                recargar={recargar}
-            />
-
-            <ClienteList
-                editar={setClienteEditar}
-                actualizar={actualizar}
-            />
-
-        </div>
-
-    );
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 }
 
 export default Clientes;

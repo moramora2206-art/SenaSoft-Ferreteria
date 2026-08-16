@@ -1,5 +1,16 @@
 <?php
 
+class FacturaException extends Exception
+{
+    public $errorCode;
+
+    public function __construct($message, $errorCode)
+    {
+        parent::__construct($message);
+        $this->errorCode = $errorCode;
+    }
+}
+
 class Factura
 {
     private $conn;
@@ -9,7 +20,6 @@ class Factura
         $this->conn = $conexion;
     }
 
-<<<<<<< HEAD
     /*
      * CREAR FACTURA
      */
@@ -26,7 +36,7 @@ class Factura
         try {
 
             if (empty($detalles)) {
-                throw new Exception("La factura debe tener productos.");
+                throw new FacturaException("La factura debe tener productos.", "VALIDATION_ERROR");
             }
 
             /*
@@ -51,9 +61,8 @@ class Factura
             $stmt = $this->conn->prepare($sqlFactura);
 
             if (!$stmt) {
-                throw new Exception(
-                    "Error preparando factura: " . $this->conn->error
-                );
+                error_log('Error preparando cabecera de factura: ' . $this->conn->error);
+                throw new FacturaException("No se pudo preparar el registro de la factura.", "DATABASE_ERROR");
             }
 
             $stmt->bind_param(
@@ -66,27 +75,15 @@ class Factura
             );
 
             if (!$stmt->execute()) {
-                throw new Exception(
-                    "Error al guardar la factura: " . $stmt->error
-                );
-=======
-    public function crear($idUsuario, $idCliente, $formaDePago, $descuento, $total, $observaciones, $detalles)
-    {
-        $this->conn->begin_transaction();
-
-        try {
-            $sqlFactura = "INSERT INTO factura (IdUsuario, IdCliente, Fecha_Venta, Forma_dePago, Descuento, Total, Observaciones) VALUES (?, ?, CURDATE(), ?, ?, ?, ?)";
-            $stmt = $this->conn->prepare($sqlFactura);
-            $stmt->bind_param("iisdds", $idUsuario, $idCliente, $formaDePago, $descuento, $total, $observaciones);
-            
-            if (!$stmt->execute()) {
-                throw new Exception("Error al guardar la cabecera de la factura: " . $stmt->error);
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
+                if ($stmt->errno === 1451 || $stmt->errno === 1452) {
+                    throw new FacturaException("El cliente seleccionado no existe.", "CLIENTE_NO_ENCONTRADO");
+                }
+                error_log('Error insertando cabecera de factura: ' . $stmt->error);
+                throw new FacturaException("No se pudo guardar la factura.", "DATABASE_ERROR");
             }
 
             $facturaId = $this->conn->insert_id;
 
-<<<<<<< HEAD
             /*
              * 2. Preparar detalle
              */
@@ -103,6 +100,11 @@ class Factura
 
             $stmtProducto = $this->conn->prepare($sqlProducto);
 
+            if (!$stmtProducto) {
+                error_log('Error preparando consulta de producto: ' . $this->conn->error);
+                throw new FacturaException("No se pudo preparar la consulta del producto.", "DATABASE_ERROR");
+            }
+
             $sqlDetalle = "
                 INSERT INTO detalle_factura
                 (
@@ -116,6 +118,11 @@ class Factura
 
             $stmtDetalle = $this->conn->prepare($sqlDetalle);
 
+            if (!$stmtDetalle) {
+                error_log('Error preparando inserción de detalle: ' . $this->conn->error);
+                throw new FacturaException("No se pudo preparar el detalle de la factura.", "DATABASE_ERROR");
+            }
+
             $sqlStock = "
                 UPDATE productos
                 SET Stock = Stock - ?
@@ -123,6 +130,11 @@ class Factura
             ";
 
             $stmtStock = $this->conn->prepare($sqlStock);
+
+            if (!$stmtStock) {
+                error_log('Error preparando actualización de stock: ' . $this->conn->error);
+                throw new FacturaException("No se pudo preparar la actualización de stock.", "DATABASE_ERROR");
+            }
 
             $subtotalGeneral = 0;
 
@@ -135,12 +147,13 @@ class Factura
                 $cantidad = intval($d->cantidad);
 
                 if ($idProducto <= 0) {
-                    throw new Exception("Producto inválido.");
+                    throw new FacturaException("Producto inválido.", "VALIDATION_ERROR");
                 }
 
                 if ($cantidad <= 0) {
-                    throw new Exception(
-                        "La cantidad debe ser mayor que cero."
+                    throw new FacturaException(
+                        "La cantidad debe ser mayor que cero.",
+                        "VALIDATION_ERROR"
                     );
                 }
 
@@ -150,8 +163,10 @@ class Factura
                 $stmtProducto->bind_param("i", $idProducto);
 
                 if (!$stmtProducto->execute()) {
-                    throw new Exception(
-                        "No se pudo consultar el producto."
+                    error_log('Error consultando producto: ' . $stmtProducto->error);
+                    throw new FacturaException(
+                        "No se pudo consultar el producto.",
+                        "DATABASE_ERROR"
                     );
                 }
 
@@ -160,8 +175,9 @@ class Factura
                     ->fetch_assoc();
 
                 if (!$producto) {
-                    throw new Exception(
-                        "El producto ID $idProducto no existe."
+                    throw new FacturaException(
+                        "El producto seleccionado ya no existe.",
+                        "PRODUCTO_NO_ENCONTRADO"
                     );
                 }
 
@@ -172,9 +188,10 @@ class Factura
                  * Validar stock.
                  */
                 if ($stockActual < $cantidad) {
-                    throw new Exception(
+                    throw new FacturaException(
                         "Stock insuficiente para {$producto['Nombre_Producto']}. " .
-                        "Disponible: $stockActual."
+                        "Disponible: $stockActual.",
+                        "INSUFFICIENT_STOCK"
                     );
                 }
 
@@ -197,9 +214,16 @@ class Factura
                 );
 
                 if (!$stmtDetalle->execute()) {
-                    throw new Exception(
-                        "Error al insertar el producto " .
-                        $producto["Nombre_Producto"]
+                    if ($stmtDetalle->errno === 1451 || $stmtDetalle->errno === 1452) {
+                        throw new FacturaException(
+                            "El producto seleccionado ya no existe.",
+                            "PRODUCTO_NO_ENCONTRADO"
+                        );
+                    }
+                    error_log('Error insertando detalle de factura: ' . $stmtDetalle->error);
+                    throw new FacturaException(
+                        "No se pudo guardar el detalle de la factura.",
+                        "DATABASE_ERROR"
                     );
                 }
 
@@ -213,8 +237,10 @@ class Factura
                 );
 
                 if (!$stmtStock->execute()) {
-                    throw new Exception(
-                        "No se pudo actualizar el inventario."
+                    error_log('Error descontando stock: ' . $stmtStock->error);
+                    throw new FacturaException(
+                        "No se pudo actualizar el inventario.",
+                        "DATABASE_ERROR"
                     );
                 }
             }
@@ -229,8 +255,9 @@ class Factura
             }
 
             if ($descuento > $subtotalGeneral) {
-                throw new Exception(
-                    "El descuento no puede superar el subtotal."
+                throw new FacturaException(
+                    "El descuento no puede superar el subtotal.",
+                    "VALIDATION_ERROR"
                 );
             }
 
@@ -250,6 +277,11 @@ class Factura
 
             $stmtTotal = $this->conn->prepare($sqlTotal);
 
+            if (!$stmtTotal) {
+                error_log('Error preparando actualización de total: ' . $this->conn->error);
+                throw new FacturaException("No se pudo actualizar el total.", "DATABASE_ERROR");
+            }
+
             $stmtTotal->bind_param(
                 "ddi",
                 $total,
@@ -258,8 +290,10 @@ class Factura
             );
 
             if (!$stmtTotal->execute()) {
-                throw new Exception(
-                    "No se pudo actualizar el total."
+                error_log('Error actualizando total de factura: ' . $stmtTotal->error);
+                throw new FacturaException(
+                    "No se pudo actualizar el total.",
+                    "DATABASE_ERROR"
                 );
             }
 
@@ -278,50 +312,23 @@ class Factura
 
             $this->conn->rollback();
 
-=======
-            $sqlDetalle = "INSERT INTO detalle_factura (IdFactura, IdProducto, Cantidad, Subtotal) VALUES (?, ?, ?, ?)";
-            $stmtDetalle = $this->conn->prepare($sqlDetalle);
-
-            $sqlStock = "UPDATE productos SET Stock = Stock - ? WHERE IdProducto = ? AND Stock >= ?";
-            $stmtStock = $this->conn->prepare($sqlStock);
-
-            foreach ($detalles as $d) {
-                $idProducto = intval($d->idProducto);
-                $cantidad = intval($d->cantidad);
-                $subtotal = floatval($d->subtotal);
-
-                // Insertar línea de detalle
-                $stmtDetalle->bind_param("iiid", $facturaId, $idProducto, $cantidad, $subtotal);
-                if (!$stmtDetalle->execute()) {
-                    throw new Exception("Error al insertar detalle del producto ID $idProducto");
-                }
-
-                // Descontar inventario
-                $stmtStock->bind_param("iii", $cantidad, $idProducto, $cantidad);
-                $stmtStock->execute();
-
-                if ($stmtStock->affected_rows === 0) {
-                    throw new Exception("Stock insuficiente para el producto ID $idProducto");
-                }
+            if ($e instanceof FacturaException) {
+                return [
+                    "success" => false,
+                    "error" => $e->getMessage(),
+                    "errorCode" => $e->errorCode
+                ];
             }
 
-            $this->conn->commit();
-            return [
-                "success" => true,
-                "facturaId" => $facturaId
-            ];
-
-        } catch (Exception $e) {
-            $this->conn->rollback();
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
+            error_log('Error inesperado en Factura::crear: ' . $e->getMessage());
             return [
                 "success" => false,
-                "error" => $e->getMessage()
+                "error" => "Ocurrió un error inesperado al registrar la factura.",
+                "errorCode" => "DATABASE_ERROR"
             ];
         }
     }
 
-<<<<<<< HEAD
 
     /*
      * LISTAR FACTURAS
@@ -350,17 +357,6 @@ class Factura
 
         $facturas = [];
 
-=======
-    public function listar()
-    {
-        $sql = "SELECT f.IdFactura as idFactura, f.IdUsuario as idUsuario, f.IdCliente as idCliente, CONCAT(c.Nombre, ' ', c.Apellido) as nombreCliente, f.Fecha_Venta as fechaVenta, f.Forma_dePago as formaDePago, f.Descuento as descuento, f.Total as total, f.Observaciones as observaciones 
-                FROM factura f 
-                LEFT JOIN clientes c ON f.IdCliente = c.IdCliente 
-                ORDER BY f.IdFactura DESC";
-        $result = $this->conn->query($sql);
-
-        $facturas = [];
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         while ($row = $result->fetch_assoc()) {
             $facturas[] = $row;
         }
@@ -368,7 +364,6 @@ class Factura
         return $facturas;
     }
 
-<<<<<<< HEAD
 
     /*
      * BUSCAR FACTURA
@@ -404,27 +399,11 @@ class Factura
         if ($factura) {
             $factura["detalles"] =
                 $this->consultarDetalles($id);
-=======
-    public function buscarPorId($id)
-    {
-        $sql = "SELECT f.IdFactura as idFactura, f.IdUsuario as idUsuario, f.IdCliente as idCliente, CONCAT(c.Nombre, ' ', c.Apellido) as nombreCliente, f.Fecha_Venta as fechaVenta, f.Forma_dePago as formaDePago, f.Descuento as descuento, f.Total as total, f.Observaciones as observaciones 
-                FROM factura f 
-                LEFT JOIN clientes c ON f.IdCliente = c.IdCliente 
-                WHERE f.IdFactura = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $factura = $stmt->get_result()->fetch_assoc();
-
-        if ($factura) {
-            $factura["detalles"] = $this->consultarDetalles($id);
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         }
 
         return $factura;
     }
 
-<<<<<<< HEAD
 
     /*
      * DETALLES
@@ -455,20 +434,6 @@ class Factura
 
         $detalles = [];
 
-=======
-    public function consultarDetalles($facturaId)
-    {
-        $sql = "SELECT df.IdDetalle as idDetalle, df.IdFactura as idFactura, df.IdProducto as idProducto, p.Nombre_Producto as nombreProducto, p.Codigo_SKU as codigoSKU, df.Cantidad as cantidad, df.Subtotal as subtotal 
-                FROM detalle_factura df 
-                INNER JOIN productos p ON df.IdProducto = p.IdProducto 
-                WHERE df.IdFactura = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $facturaId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $detalles = [];
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         while ($row = $result->fetch_assoc()) {
             $detalles[] = $row;
         }
@@ -476,7 +441,6 @@ class Factura
         return $detalles;
     }
 
-<<<<<<< HEAD
 
     /*
      * ANULAR FACTURA
@@ -500,6 +464,12 @@ class Factura
             ";
 
             $stmtFactura = $this->conn->prepare($sqlFactura);
+
+            if (!$stmtFactura) {
+                error_log('Error preparando consulta de factura para anular: ' . $this->conn->error);
+                throw new FacturaException("No se pudo preparar la consulta de la factura.", "DATABASE_ERROR");
+            }
+
             $stmtFactura->bind_param("i", $id);
             $stmtFactura->execute();
 
@@ -508,14 +478,16 @@ class Factura
                 ->fetch_assoc();
 
             if (!$factura) {
-                throw new Exception(
-                    "La factura no existe."
+                throw new FacturaException(
+                    "La factura no existe.",
+                    "FACTURA_NO_ENCONTRADA"
                 );
             }
 
             if ($factura["Estado"] === "ANULADA") {
-                throw new Exception(
-                    "La factura ya está anulada."
+                throw new FacturaException(
+                    "La factura ya está anulada.",
+                    "FACTURA_YA_ANULADA"
                 );
             }
 
@@ -531,6 +503,12 @@ class Factura
             ";
 
             $stmtDetalles = $this->conn->prepare($sqlDetalles);
+
+            if (!$stmtDetalles) {
+                error_log('Error preparando consulta de detalles para anular: ' . $this->conn->error);
+                throw new FacturaException("No se pudo preparar la consulta de detalles.", "DATABASE_ERROR");
+            }
+
             $stmtDetalles->bind_param("i", $id);
             $stmtDetalles->execute();
 
@@ -547,6 +525,11 @@ class Factura
 
             $stmtStock = $this->conn->prepare($sqlStock);
 
+            if (!$stmtStock) {
+                error_log('Error preparando devolución de stock: ' . $this->conn->error);
+                throw new FacturaException("No se pudo preparar la devolución de stock.", "DATABASE_ERROR");
+            }
+
             while ($detalle = $result->fetch_assoc()) {
 
                 $cantidad = intval($detalle["Cantidad"]);
@@ -559,8 +542,10 @@ class Factura
                 );
 
                 if (!$stmtStock->execute()) {
-                    throw new Exception(
-                        "No se pudo devolver stock del producto."
+                    error_log('Error devolviendo stock: ' . $stmtStock->error);
+                    throw new FacturaException(
+                        "No se pudo devolver stock del producto.",
+                        "DATABASE_ERROR"
                     );
                 }
             }
@@ -575,11 +560,19 @@ class Factura
             ";
 
             $stmtAnular = $this->conn->prepare($sqlAnular);
+
+            if (!$stmtAnular) {
+                error_log('Error preparando anulación de factura: ' . $this->conn->error);
+                throw new FacturaException("No se pudo anular la factura.", "DATABASE_ERROR");
+            }
+
             $stmtAnular->bind_param("i", $id);
 
             if (!$stmtAnular->execute()) {
-                throw new Exception(
-                    "No se pudo anular la factura."
+                error_log('Error anulando factura: ' . $stmtAnular->error);
+                throw new FacturaException(
+                    "No se pudo anular la factura.",
+                    "DATABASE_ERROR"
                 );
             }
 
@@ -593,36 +586,20 @@ class Factura
 
             $this->conn->rollback();
 
+            if ($e instanceof FacturaException) {
+                return [
+                    "success" => false,
+                    "error" => $e->getMessage(),
+                    "errorCode" => $e->errorCode
+                ];
+            }
+
+            error_log('Error inesperado en Factura::anular: ' . $e->getMessage());
             return [
                 "success" => false,
-                "error" => $e->getMessage()
+                "error" => "Ocurrió un error inesperado al anular la factura.",
+                "errorCode" => "DATABASE_ERROR"
             ];
         }
     }
 }
-=======
-    public function eliminar($id)
-    {
-        $this->conn->begin_transaction();
-        try {
-            // Eliminar detalles primero
-            $sqlDetalles = "DELETE FROM detalle_factura WHERE IdFactura = ?";
-            $stmtDet = $this->conn->prepare($sqlDetalles);
-            $stmtDet->bind_param("i", $id);
-            $stmtDet->execute();
-
-            // Eliminar cabecera
-            $sqlFactura = "DELETE FROM factura WHERE IdFactura = ?";
-            $stmtFact = $this->conn->prepare($sqlFactura);
-            $stmtFact->bind_param("i", $id);
-            $stmtFact->execute();
-
-            $this->conn->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->conn->rollback();
-            return false;
-        }
-    }
-}
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566

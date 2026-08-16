@@ -74,13 +74,57 @@ class Producto
         return $stmt->get_result()->fetch_assoc();
     }
 
+    public function buscarPorSku($sku)
+    {
+        if ($sku === null || $sku === '') {
+            return null;
+        }
+
+        $sql = "SELECT IdProducto as idProducto FROM productos WHERE Codigo_SKU = ? LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+
+        if ($stmt === false) {
+            error_log('Error preparando buscarPorSku: ' . $this->conn->error);
+            return null;
+        }
+
+        $stmt->bind_param("s", $sku);
+
+        if (!$stmt->execute()) {
+            error_log('Error ejecutando buscarPorSku: ' . $stmt->error);
+            return null;
+        }
+
+        return $stmt->get_result()->fetch_assoc() ?: null;
+    }
+
+    private function ejecutarStmtConControlDuplicado($stmt)
+    {
+        if ($stmt->execute()) {
+            return true;
+        }
+
+        if ($stmt->errno === 1062) {
+            error_log('Violación de unicidad en productos: ' . $stmt->error);
+            return 'DUPLICATE_CODE';
+        }
+
+        if ($stmt->errno === 1451 || $stmt->errno === 1452) {
+            error_log('Violación de clave foránea en productos: ' . $stmt->error);
+            return 'FOREIGN_KEY_CONSTRAINT';
+        }
+
+        error_log('Error ejecutando operación sobre productos: ' . $stmt->error);
+        return false;
+    }
+
     public function crear($idProveedor, $nombreProducto, $codigoSKU, $stock, $precioUnitario, $precioCompra, $categoria, $imagen, $fechaVencimiento, $descripcion)
     {
         $sql = "INSERT INTO productos (IdProveedor, Nombre_Producto, Codigo_SKU, Stock, Precio_Unitario, Precio_Compra, Categoria, Imagen, Fecha_Vencimiento, Descripcion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
         if ($stmt === false) return false;
         $stmt->bind_param("issiddssss", $idProveedor, $nombreProducto, $codigoSKU, $stock, $precioUnitario, $precioCompra, $categoria, $imagen, $fechaVencimiento, $descripcion);
-        return $stmt->execute();
+        return $this->ejecutarStmtConControlDuplicado($stmt);
     }
 
     public function actualizar($id, $idProveedor, $nombreProducto, $codigoSKU, $stock, $precioUnitario, $precioCompra, $categoria, $imagen, $fechaVencimiento, $descripcion)
@@ -90,7 +134,7 @@ class Producto
         if ($stmt === false) return false;
         $types = "issiddssssi";
         $stmt->bind_param($types, $idProveedor, $nombreProducto, $codigoSKU, $stock, $precioUnitario, $precioCompra, $categoria, $imagen, $fechaVencimiento, $descripcion, $id);
-        return $stmt->execute();
+        return $this->ejecutarStmtConControlDuplicado($stmt);
     }
 
     public function actualizarStock($id, $cantidad)
@@ -110,7 +154,8 @@ class Producto
         if ($id <= 0 || $cantidad <= 0) {
             return [
                 "success" => false,
-                "message" => "Parámetros inválidos"
+                "message" => "Parámetros inválidos",
+                "errorCode" => "VALIDATION_ERROR"
             ];
         }
 
@@ -121,7 +166,8 @@ class Producto
             $sqlSelect = "SELECT Stock FROM productos WHERE IdProducto = ? FOR UPDATE";
             $stmtSel = $this->conn->prepare($sqlSelect);
             if ($stmtSel === false) {
-                throw new Exception("Error en la preparación de consulta (select).");
+                error_log('Error preparando consulta de stock: ' . $this->conn->error);
+                throw new Exception("No se pudo preparar la consulta de stock.");
             }
             $stmtSel->bind_param("i", $id);
             $stmtSel->execute();
@@ -136,11 +182,13 @@ class Producto
             $sqlUpdate = "UPDATE productos SET Stock = Stock + ? WHERE IdProducto = ?";
             $stmtUpd = $this->conn->prepare($sqlUpdate);
             if ($stmtUpd === false) {
-                throw new Exception("Error en la preparación de consulta (update).");
+                error_log('Error preparando actualización de stock: ' . $this->conn->error);
+                throw new Exception("No se pudo preparar la actualización de stock.");
             }
             $stmtUpd->bind_param("ii", $cantidad, $id);
             if (!$stmtUpd->execute()) {
-                throw new Exception("Error al actualizar stock: " . $stmtUpd->error);
+                error_log('Error actualizando stock: ' . $stmtUpd->error);
+                throw new Exception("No se pudo actualizar el stock.");
             }
 
             if ($stmtUpd->affected_rows === 0) {
@@ -160,9 +208,17 @@ class Producto
             ];
         } catch (Exception $e) {
             $this->conn->rollback();
+            $mensaje = $e->getMessage();
+            $errorCode = "DATABASE_ERROR";
+            if ($mensaje === "El producto no existe.") {
+                $errorCode = "PRODUCTO_NO_ENCONTRADO";
+            } else if ($mensaje === "No se actualizó el stock (producto no encontrado o sin cambio).") {
+                $errorCode = "PRODUCTO_NO_ENCONTRADO";
+            }
             return [
                 "success" => false,
-                "message" => $e->getMessage()
+                "message" => $mensaje,
+                "errorCode" => $errorCode
             ];
         }
     }
@@ -173,7 +229,6 @@ class Producto
         $stmt = $this->conn->prepare($sql);
         if ($stmt === false) return false;
         $stmt->bind_param("i", $id);
-        $ok = $stmt->execute();
-        return $ok;
+        return $this->ejecutarStmtConControlDuplicado($stmt);
     }
 }

@@ -14,10 +14,6 @@ class FacturaController
     public function listar()
     {
         $facturas = $this->model->listar();
-<<<<<<< HEAD
-
-=======
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         return [
             "success" => true,
             "data" => $facturas
@@ -26,23 +22,24 @@ class FacturaController
 
     public function buscarPorId($id)
     {
-        $factura = $this->model->buscarPorId($id);
-<<<<<<< HEAD
-
-        if (!$factura) {
-
-=======
-        if (!$factura) {
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
+        $id = intval($id);
+        if ($id <= 0) {
             return [
                 "success" => false,
+                "errorCode" => "INVALID_ID",
+                "message" => "ID de factura inválido."
+            ];
+        }
+
+        $factura = $this->model->buscarPorId($id);
+
+        if (!$factura) {
+            return [
+                "success" => false,
+                "errorCode" => "NOT_FOUND",
                 "message" => "Factura no encontrada."
             ];
         }
-<<<<<<< HEAD
-
-=======
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         return [
             "success" => true,
             "data" => $factura
@@ -51,15 +48,14 @@ class FacturaController
 
     public function guardar($datos)
     {
-<<<<<<< HEAD
         if (
             empty($datos->idCliente) ||
             empty($datos->detalles) ||
             count($datos->detalles) === 0
         ) {
-
             return [
                 "success" => false,
+                "errorCode" => "VALIDATION_ERROR",
                 "message" =>
                     "Debe seleccionar un cliente y agregar al menos un producto a la factura."
             ];
@@ -71,9 +67,9 @@ class FacturaController
         $idUsuario = intval($datos->idUsuario);
 
         if ($idUsuario <= 0) {
-
             return [
                 "success" => false,
+                "errorCode" => "VALIDATION_ERROR",
                 "message" =>
                     "No se pudo identificar al usuario actual."
             ];
@@ -95,6 +91,31 @@ class FacturaController
 
         $detalles = $datos->detalles;
 
+        /*
+         * Validación explícita de enteros: se rechaza cualquier cantidad
+         * decimal (5.8) en lugar de truncarla silenciosamente con intval().
+         */
+        foreach ($detalles as $detalle) {
+            $idProductoDetalle = isset($detalle->idProducto) ? $detalle->idProducto : null;
+            $cantidadDetalle = isset($detalle->cantidad) ? $detalle->cantidad : null;
+
+            if (!esEntero($idProductoDetalle) || intval($idProductoDetalle) <= 0) {
+                return [
+                    "success" => false,
+                    "errorCode" => "VALIDATION_ERROR",
+                    "message" => "Cada detalle debe incluir un producto válido."
+                ];
+            }
+
+            if (!esEntero($cantidadDetalle) || intval($cantidadDetalle) <= 0) {
+                return [
+                    "success" => false,
+                    "errorCode" => "VALIDATION_ERROR",
+                    "message" => "La cantidad de cada producto debe ser un número entero mayor que 0."
+                ];
+            }
+        }
+
         $resultado = $this->model->crear(
             $idUsuario,
             $idCliente,
@@ -105,7 +126,6 @@ class FacturaController
         );
 
         if ($resultado["success"]) {
-
             return [
                 "success" => true,
                 "message" =>
@@ -114,38 +134,16 @@ class FacturaController
                     $resultado["facturaId"],
                 "total" =>
                     $resultado["total"]
-=======
-        if (empty($datos->idCliente) || empty($datos->detalles) || count($datos->detalles) === 0) {
-            return [
-                "success" => false,
-                "message" => "Debe seleccionar un cliente y agregar al menos un producto a la factura."
-            ];
-        }
-
-        $idUsuario = isset($datos->idUsuario) && intval($datos->idUsuario) > 0 ? intval($datos->idUsuario) : 1;
-        $idCliente = intval($datos->idCliente);
-        $formaDePago = isset($datos->formaDePago) ? trim($datos->formaDePago) : "Efectivo";
-        $descuento = isset($datos->descuento) ? floatval($datos->descuento) : 0.0;
-        $total = isset($datos->total) ? floatval($datos->total) : 0.0;
-        $observaciones = isset($datos->observaciones) ? trim($datos->observaciones) : "";
-        $detalles = $datos->detalles;
-
-        $resultado = $this->model->crear($idUsuario, $idCliente, $formaDePago, $descuento, $total, $observaciones, $detalles);
-
-        if ($resultado["success"]) {
-            return [
-                "success" => true,
-                "message" => "Factura registrada exitosamente y stock descontado del inventario.",
-                "facturaId" => $resultado["facturaId"]
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
             ];
         }
 
         return [
             "success" => false,
-<<<<<<< HEAD
+            "errorCode" =>
+                isset($resultado["errorCode"])
+                    ? $resultado["errorCode"]
+                    : "DATABASE_ERROR",
             "message" =>
-                "Error al registrar la factura: " .
                 $resultado["error"]
         ];
     }
@@ -158,54 +156,31 @@ class FacturaController
         $id = intval($id);
 
         if ($id <= 0) {
-
-=======
-            "message" => "Error al registrar la factura: " . $resultado["error"]
-        ];
-    }
-
-    public function eliminar($id)
-    {
-        $id = intval($id);
-        if ($id <= 0) {
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
             return [
                 "success" => false,
+                "errorCode" => "INVALID_ID",
                 "message" => "ID inválido."
             ];
         }
 
-<<<<<<< HEAD
         $resultado = $this->model->anular($id);
 
         if ($resultado["success"]) {
-
             return [
                 "success" => true,
                 "message" =>
                     "Factura anulada correctamente. El stock fue devuelto al inventario."
-=======
-        $ok = $this->model->eliminar($id);
-        if ($ok) {
-            return [
-                "success" => true,
-                "message" => "Factura eliminada correctamente."
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
             ];
         }
 
         return [
             "success" => false,
-<<<<<<< HEAD
+            "errorCode" =>
+                isset($resultado["errorCode"])
+                    ? $resultado["errorCode"]
+                    : "DATABASE_ERROR",
             "message" =>
-                "No se pudo anular la factura: " .
-                ($resultado["error"] ?? "")
+                $resultado["error"]
         ];
     }
 }
-=======
-            "message" => "No se pudo eliminar la factura."
-        ];
-    }
-}
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566

@@ -4,11 +4,7 @@ import {
     guardarProveedor
 } from "../services/proveedorService";
 
-<<<<<<< HEAD
 function ProveedorForm({ recargar, cancelar }) {
-=======
-function ProveedorForm({ recargar }) {
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
     const [proveedor, setProveedor] = useState({
         nombreProveedor: "",
@@ -18,28 +14,41 @@ function ProveedorForm({ recargar }) {
         email: ""
     });
 
-<<<<<<< HEAD
     const [guardando, setGuardando] = useState(false);
 
     const handleChange = (e) => {
-=======
-    const handleChange = (e) => {
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
         setProveedor({
             ...proveedor,
             [e.target.name]: e.target.value
         });
-<<<<<<< HEAD
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const datos = {
+            ...proveedor,
+            nombreProveedor: proveedor.nombreProveedor.trim(),
+            nit: proveedor.nit.trim(),
+            nombreContacto: proveedor.nombreContacto.trim(),
+            nCelular: proveedor.nCelular.trim(),
+            email: proveedor.email.trim()
+        };
+
+        if (datos.nombreProveedor === "" || datos.nit === "" || Number(datos.nit) <= 0) {
+            alert("Nombre del proveedor y NIT son requeridos.");
+            return;
+        }
+
+        if (datos.email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.email)) {
+            alert("El correo electrónico no es válido.");
+            return;
+        }
+
         setGuardando(true);
 
         try {
-            const res = await guardarProveedor(proveedor);
+            const res = await guardarProveedor(datos);
 
             if (res && res.success) {
                 alert("Proveedor registrado correctamente.");
@@ -166,99 +175,19 @@ function ProveedorForm({ recargar }) {
                                 Correo Electrónico
                             </label>
 
-=======
-
-    };
-
-    const handleSubmit = async (e) => {
-
-        e.preventDefault();
-
-        await guardarProveedor(proveedor);
-
-        alert("Proveedor registrado");
-
-        recargar();
-
-    };
-
-    return (
-
-        <div className="card shadow mb-4">
-
-            <div className="card-header">
-                Registrar Proveedor
-            </div>
-
-            <div className="card-body">
-
-                <form onSubmit={handleSubmit}>
-
-                    <div className="row">
-
-                        <div className="col-md-6 mb-3">
-                            <label>Nombre Empresa</label>
-                            <input
-                                className="form-control"
-                                name="nombreProveedor"
-                                value={proveedor.nombreProveedor}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>NIT</label>
-                            <input
-                                className="form-control"
-                                name="nit"
-                                value={proveedor.nit}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Nombre Contacto</label>
-                            <input
-                                className="form-control"
-                                name="nombreContacto"
-                                value={proveedor.nombreContacto}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Celular</label>
-                            <input
-                                className="form-control"
-                                name="nCelular"
-                                value={proveedor.nCelular}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-12 mb-3">
-                            <label>Email</label>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                             <input
                                 type="email"
                                 className="form-control"
                                 name="email"
-<<<<<<< HEAD
                                 placeholder="proveedor@correo.com"
                                 value={proveedor.email}
                                 onChange={handleChange}
                             />
 
-=======
-                                value={proveedor.email}
-                                onChange={handleChange}
-                            />
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                         </div>
 
                     </div>
 
-<<<<<<< HEAD
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
 
                         <button
@@ -292,27 +221,13 @@ function ProveedorForm({ recargar }) {
                         </button>
 
                     </div>
-=======
-                    <button
-                        className="btn btn-success"
-                        type="submit"
-                    >
-                        Guardar Proveedor
-                    </button>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                 </form>
 
             </div>
 
         </div>
-<<<<<<< HEAD
     );
-=======
-
-    );
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 }
 
 export default ProveedorForm;

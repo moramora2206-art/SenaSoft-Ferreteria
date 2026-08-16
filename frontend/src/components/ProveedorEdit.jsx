@@ -6,7 +6,6 @@ import {
 
 function ProveedorEdit({
     proveedor,
-<<<<<<< HEAD
     recargar,
     cancelar
 }) {
@@ -34,18 +33,6 @@ function ProveedorEdit({
     if (!proveedor) {
         return null;
     }
-=======
-    recargar
-}) {
-
-    const [datos, setDatos] = useState(proveedor);
-
-    useEffect(() => {
-        setDatos(proveedor);
-    }, [proveedor]);
-
-    if (!proveedor) return null;
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
     const handleChange = (e) => {
 
@@ -60,12 +47,30 @@ function ProveedorEdit({
 
         e.preventDefault();
 
-<<<<<<< HEAD
+        const envio = {
+            ...datos,
+            nombreProveedor: (datos.nombreProveedor || "").trim(),
+            nit: (datos.nit || "").trim(),
+            nombreContacto: (datos.nombreContacto || "").trim(),
+            nCelular: (datos.nCelular || "").trim(),
+            email: (datos.email || "").trim()
+        };
+
+        if (envio.nombreProveedor === "" || envio.nit === "" || Number(envio.nit) <= 0) {
+            alert("Nombre del proveedor y NIT son requeridos.");
+            return;
+        }
+
+        if (envio.email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(envio.email)) {
+            alert("El correo electrónico no es válido.");
+            return;
+        }
+
         setGuardando(true);
 
         try {
 
-            const res = await actualizarProveedor(datos);
+            const res = await actualizarProveedor(envio);
 
             if (res && res.success) {
 
@@ -98,19 +103,11 @@ function ProveedorEdit({
             setGuardando(false);
 
         }
-=======
-        await actualizarProveedor(datos);
-
-        alert("Proveedor actualizado");
-
-        recargar();
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
     };
 
     return (
 
-<<<<<<< HEAD
         <div className="card shadow border-0 mb-4">
 
             <div className="card-header bg-primary text-white py-3 d-flex align-items-center justify-content-between">
@@ -218,73 +215,10 @@ function ProveedorEdit({
                                 onChange={handleChange}
                             />
 
-=======
-        <div className="card shadow mb-4">
-
-            <div className="card-header">
-                Editar Proveedor
-            </div>
-
-            <div className="card-body">
-
-                <form onSubmit={handleSubmit}>
-
-                    <div className="row">
-
-                        <div className="col-md-6 mb-3">
-                            <label>Nombre</label>
-                            <input
-                                className="form-control"
-                                name="nombreProveedor"
-                                value={datos.nombreProveedor}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>NIT</label>
-                            <input
-                                className="form-control"
-                                name="nit"
-                                value={datos.nit}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Nombre Contacto</label>
-                            <input
-                                className="form-control"
-                                name="nombreContacto"
-                                value={datos.nombreContacto}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Celular</label>
-                            <input
-                                className="form-control"
-                                name="nCelular"
-                                value={datos.nCelular}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <div className="col-md-6 mb-3">
-                            <label>Email</label>
-                            <input
-                                className="form-control"
-                                name="email"
-                                value={datos.email}
-                                onChange={handleChange}
-                            />
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
                         </div>
 
                     </div>
 
-<<<<<<< HEAD
                     <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
 
                         <button
@@ -326,14 +260,6 @@ function ProveedorEdit({
                         </button>
 
                     </div>
-=======
-                    <button
-                        className="btn btn-primary"
-                        type="submit"
-                    >
-                        Actualizar Cliente
-                    </button>
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 
                 </form>
 
@@ -342,10 +268,6 @@ function ProveedorEdit({
         </div>
 
     );
-<<<<<<< HEAD
-=======
-
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
 }
 
 export default ProveedorEdit;

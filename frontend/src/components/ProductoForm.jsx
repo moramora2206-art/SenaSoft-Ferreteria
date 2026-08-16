@@ -75,11 +75,28 @@ function ProductoForm({ recargar, cancelar }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const envio = {
+            ...producto,
+            codigoSKU: producto.codigoSKU.trim(),
+            nombreProducto: producto.nombreProducto.trim(),
+            categoria: producto.categoria.trim(),
+            descripcion: producto.descripcion.trim()
+        };
+
+        if (envio.nombreProducto === "" || envio.codigoSKU === "") {
+            alert("El nombre del producto y el SKU son requeridos.");
+            return;
+        }
+
+        if (Number(envio.precioUnitario) < 0 || Number(envio.stock) < 0) {
+            alert("El precio y el stock no pueden ser negativos.");
+            return;
+        }
+
         setGuardando(true);
 
         try {
-            const envio = { ...producto };
-
             // If a file was selected, upload it first
             if (imagenFile) {
                 const res = await uploadImage(imagenFile);

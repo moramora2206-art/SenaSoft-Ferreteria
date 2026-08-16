@@ -1,6 +1,10 @@
-import api from "./api";
+import api, { normalizarErrorApi } from "./api";
 
 export const obtenerMetricasDashboard = async () => {
-    const response = await api.get("/dashboard.php");
-    return response.data;
+    try {
+        const response = await api.get("/dashboard.php");
+        return response.data;
+    } catch (error) {
+        return normalizarErrorApi(error, "No se pudieron obtener las métricas.");
+    }
 };

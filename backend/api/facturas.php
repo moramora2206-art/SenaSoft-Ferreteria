@@ -1,13 +1,16 @@
 <?php
 
 require_once(__DIR__ . "/../config/database.php");
-<<<<<<< HEAD
 require_once(__DIR__ . "/../config/auth.php");
 require_once(__DIR__ . "/../controllers/FacturaController.php");
 
 $controller = new FacturaController($conn);
 
 $method = $_SERVER['REQUEST_METHOD'];
+
+$errorExtra = function ($res) {
+    return isset($res["errorCode"]) ? ["errorCode" => $res["errorCode"]] : [];
+};
 
 switch ($method) {
 
@@ -24,11 +27,14 @@ switch ($method) {
                 intval($_GET['id'])
             );
 
+            $code = $res["success"] ? 200 : (isset($res["errorCode"]) ? codigoHttpParaError($res["errorCode"]) : 404);
+
             jsonResponse(
                 $res["success"],
-                $res["message"] ?? "",
+                $res["message"] ?? ($res["success"] ? "" : "Factura no encontrada."),
                 $res["data"] ?? null,
-                $res["success"] ? 200 : 404
+                $code,
+                $errorExtra($res)
             );
 
         } else {
@@ -62,16 +68,15 @@ switch ($method) {
             file_get_contents("php://input")
         );
 
-        if (!$datos) {
+        if (json_last_error() !== JSON_ERROR_NONE || !$datos) {
 
             jsonResponse(
                 false,
-                "Datos de la factura inválidos.",
+                "JSON inválido.",
                 null,
-                400
+                400,
+                ["errorCode" => "INVALID_JSON"]
             );
-
-            exit;
         }
 
         /*
@@ -83,16 +88,21 @@ switch ($method) {
 
         $res = $controller->guardar($datos);
 
+        $code = $res["success"]
+            ? 201
+            : (isset($res["errorCode"]) ? codigoHttpParaError($res["errorCode"]) : 400);
+
         jsonResponse(
             $res["success"],
-            $res["message"],
+            $res["message"] ?? "",
             isset($res["facturaId"])
                 ? [
                     "facturaId" => $res["facturaId"],
                     "total" => $res["total"] ?? null
                 ]
                 : null,
-            $res["success"] ? 201 : 400
+            $code,
+            $errorExtra($res)
         );
 
         break;
@@ -117,10 +127,9 @@ switch ($method) {
                 false,
                 "ID requerido.",
                 null,
-                400
+                400,
+                ["errorCode" => "VALIDATION_ERROR"]
             );
-
-            exit;
         }
 
         /*
@@ -130,11 +139,16 @@ switch ($method) {
          */
         $res = $controller->anular($id);
 
+        $code = $res["success"]
+            ? 200
+            : (isset($res["errorCode"]) ? codigoHttpParaError($res["errorCode"]) : 400);
+
         jsonResponse(
             $res["success"],
-            $res["message"],
+            $res["message"] ?? "",
             null,
-            $res["success"] ? 200 : 400
+            $code,
+            $errorExtra($res)
         );
 
         break;
@@ -146,48 +160,9 @@ switch ($method) {
             false,
             "Método no permitido.",
             null,
-            405
+            405,
+            ["errorCode" => "METHOD_NOT_ALLOWED"]
         );
 
         break;
 }
-=======
-require_once(__DIR__ . "/../controllers/FacturaController.php");
-
-$controller = new FacturaController($conn);
-$method = $_SERVER['REQUEST_METHOD'];
-
-switch ($method) {
-    case 'GET':
-        if (isset($_GET['id']) && !empty($_GET['id'])) {
-            $res = $controller->buscarPorId(intval($_GET['id']));
-            jsonResponse($res["success"], $res["message"] ?? "", $res["data"] ?? null, $res["success"] ? 200 : 404);
-        } else {
-            $res = $controller->listar();
-            jsonResponse($res["success"], "Lista de facturas", $res["data"]);
-        }
-        break;
-
-    case 'POST':
-        $datos = json_decode(file_get_contents("php://input"));
-        if (!$datos) {
-            jsonResponse(false, "Datos de la factura inválidos", null, 400);
-        }
-        $res = $controller->guardar($datos);
-        jsonResponse($res["success"], $res["message"], isset($res["facturaId"]) ? ["facturaId" => $res["facturaId"]] : null, $res["success"] ? 201 : 400);
-        break;
-
-    case 'DELETE':
-        $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-        if ($id <= 0) {
-            jsonResponse(false, "ID requerido", null, 400);
-        }
-        $res = $controller->eliminar($id);
-        jsonResponse($res["success"], $res["message"], null, $res["success"] ? 200 : 400);
-        break;
-
-    default:
-        jsonResponse(false, "Método no permitido", null, 405);
-        break;
-}
->>>>>>> c37403677ede87369dedc9b9b5069f1114d37566
